@@ -48,6 +48,7 @@
 		B3A54EE42C2CA9650050722E /* LogViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogViewController.swift; sourceTree = "<group>"; };
 		B3A54EE62C2CA9940050722E /* KnivesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnivesViewController.swift; sourceTree = "<group>"; };
 		B3A54EE82C2CA9DB0050722E /* SharpenersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharpenersViewController.swift; sourceTree = "<group>"; };
+		B3A54EEA2C2CAB720050722E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +79,7 @@
 		B369E39C2C2CA79B001BC399 = {
 			isa = PBXGroup;
 			children = (
+				B3A54EEA2C2CAB720050722E /* README.md */,
 				B369E3A72C2CA79B001BC399 /* SharpKnife */,
 				B369E3BA2C2CA79E001BC399 /* SharpKnifeTests */,
 				B369E3C42C2CA79E001BC399 /* SharpKnifeUITests */,

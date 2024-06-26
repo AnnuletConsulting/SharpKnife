@@ -12,10 +12,10 @@
 		B369E3BC2C2CA79E001BC399 /* SharpKnifeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369E3BB2C2CA79E001BC399 /* SharpKnifeTests.swift */; };
 		B369E3C62C2CA79E001BC399 /* SharpKnifeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369E3C52C2CA79E001BC399 /* SharpKnifeUITests.swift */; };
 		B369E3C82C2CA79E001BC399 /* SharpKnifeUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369E3C72C2CA79E001BC399 /* SharpKnifeUITestsLaunchTests.swift */; };
-		B369E3D52C2CA7EF001BC399 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369E3D42C2CA7EF001BC399 /* AppDelegate.swift */; };
 		B3A54EE52C2CA9650050722E /* LogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EE42C2CA9650050722E /* LogViewController.swift */; };
 		B3A54EE72C2CA9940050722E /* KnivesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EE62C2CA9940050722E /* KnivesViewController.swift */; };
 		B3A54EE92C2CA9DB0050722E /* SharpenersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EE82C2CA9DB0050722E /* SharpenersViewController.swift */; };
+		B3A54EED2C2CB5FC0050722E /* DataHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EEC2C2CB5FC0050722E /* DataHandler.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,10 +44,11 @@
 		B369E3C12C2CA79E001BC399 /* SharpKnifeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SharpKnifeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B369E3C52C2CA79E001BC399 /* SharpKnifeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharpKnifeUITests.swift; sourceTree = "<group>"; };
 		B369E3C72C2CA79E001BC399 /* SharpKnifeUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharpKnifeUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		B369E3D42C2CA7EF001BC399 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B3A54EE42C2CA9650050722E /* LogViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogViewController.swift; sourceTree = "<group>"; };
 		B3A54EE62C2CA9940050722E /* KnivesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnivesViewController.swift; sourceTree = "<group>"; };
 		B3A54EE82C2CA9DB0050722E /* SharpenersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharpenersViewController.swift; sourceTree = "<group>"; };
+		B3A54EEB2C2CB4880050722E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		B3A54EEC2C2CB5FC0050722E /* DataHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataHandler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +79,7 @@
 		B369E39C2C2CA79B001BC399 = {
 			isa = PBXGroup;
 			children = (
+				B3A54EEB2C2CB4880050722E /* README.md */,
 				B369E3A72C2CA79B001BC399 /* SharpKnife */,
 				B369E3BA2C2CA79E001BC399 /* SharpKnifeTests */,
 				B369E3C42C2CA79E001BC399 /* SharpKnifeUITests */,
@@ -99,12 +101,9 @@
 			isa = PBXGroup;
 			children = (
 				B369E3D62C2CA854001BC399 /* ViewControllers */,
-				B369E3D72C2CA863001BC399 /* Models */,
-				B369E3D82C2CA86B001BC399 /* Views */,
-				B369E3D92C2CA879001BC399 /* Utils */,
 				B369E3AE2C2CA79E001BC399 /* Assets.xcassets */,
 				B369E3B02C2CA79E001BC399 /* Preview Content */,
-				B369E3D42C2CA7EF001BC399 /* AppDelegate.swift */,
+				B3A54EEC2C2CB5FC0050722E /* DataHandler.swift */,
 			);
 			path = SharpKnife;
 			sourceTree = "<group>";
@@ -142,27 +141,6 @@
 				B3A54EE82C2CA9DB0050722E /* SharpenersViewController.swift */,
 			);
 			path = ViewControllers;
-			sourceTree = "<group>";
-		};
-		B369E3D72C2CA863001BC399 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		B369E3D82C2CA86B001BC399 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		B369E3D92C2CA879001BC399 /* Utils */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Utils;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -295,8 +273,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B3A54EED2C2CB5FC0050722E /* DataHandler.swift in Sources */,
 				B3A54EE72C2CA9940050722E /* KnivesViewController.swift in Sources */,
-				B369E3D52C2CA7EF001BC399 /* AppDelegate.swift in Sources */,
 				B3A54EE52C2CA9650050722E /* LogViewController.swift in Sources */,
 				B3A54EE92C2CA9DB0050722E /* SharpenersViewController.swift in Sources */,
 			);

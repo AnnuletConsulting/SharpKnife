@@ -1,0 +1,597 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B369E3A92C2CA79B001BC399 /* SharpKnifeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369E3A82C2CA79B001BC399 /* SharpKnifeApp.swift */; };
+		B369E3AB2C2CA79B001BC399 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369E3AA2C2CA79B001BC399 /* ContentView.swift */; };
+		B369E3AD2C2CA79B001BC399 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369E3AC2C2CA79B001BC399 /* Item.swift */; };
+		B369E3AF2C2CA79E001BC399 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B369E3AE2C2CA79E001BC399 /* Assets.xcassets */; };
+		B369E3B22C2CA79E001BC399 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B369E3B12C2CA79E001BC399 /* Preview Assets.xcassets */; };
+		B369E3BC2C2CA79E001BC399 /* SharpKnifeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369E3BB2C2CA79E001BC399 /* SharpKnifeTests.swift */; };
+		B369E3C62C2CA79E001BC399 /* SharpKnifeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369E3C52C2CA79E001BC399 /* SharpKnifeUITests.swift */; };
+		B369E3C82C2CA79E001BC399 /* SharpKnifeUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369E3C72C2CA79E001BC399 /* SharpKnifeUITestsLaunchTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B369E3B82C2CA79E001BC399 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B369E39D2C2CA79B001BC399 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B369E3A42C2CA79B001BC399;
+			remoteInfo = SharpKnife;
+		};
+		B369E3C22C2CA79E001BC399 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B369E39D2C2CA79B001BC399 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B369E3A42C2CA79B001BC399;
+			remoteInfo = SharpKnife;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		B369E3A52C2CA79B001BC399 /* SharpKnife.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SharpKnife.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B369E3A82C2CA79B001BC399 /* SharpKnifeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharpKnifeApp.swift; sourceTree = "<group>"; };
+		B369E3AA2C2CA79B001BC399 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B369E3AC2C2CA79B001BC399 /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
+		B369E3AE2C2CA79E001BC399 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B369E3B12C2CA79E001BC399 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		B369E3B72C2CA79E001BC399 /* SharpKnifeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SharpKnifeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B369E3BB2C2CA79E001BC399 /* SharpKnifeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharpKnifeTests.swift; sourceTree = "<group>"; };
+		B369E3C12C2CA79E001BC399 /* SharpKnifeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SharpKnifeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B369E3C52C2CA79E001BC399 /* SharpKnifeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharpKnifeUITests.swift; sourceTree = "<group>"; };
+		B369E3C72C2CA79E001BC399 /* SharpKnifeUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharpKnifeUITestsLaunchTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B369E3A22C2CA79B001BC399 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B369E3B42C2CA79E001BC399 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B369E3BE2C2CA79E001BC399 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B369E39C2C2CA79B001BC399 = {
+			isa = PBXGroup;
+			children = (
+				B369E3A72C2CA79B001BC399 /* SharpKnife */,
+				B369E3BA2C2CA79E001BC399 /* SharpKnifeTests */,
+				B369E3C42C2CA79E001BC399 /* SharpKnifeUITests */,
+				B369E3A62C2CA79B001BC399 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B369E3A62C2CA79B001BC399 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B369E3A52C2CA79B001BC399 /* SharpKnife.app */,
+				B369E3B72C2CA79E001BC399 /* SharpKnifeTests.xctest */,
+				B369E3C12C2CA79E001BC399 /* SharpKnifeUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B369E3A72C2CA79B001BC399 /* SharpKnife */ = {
+			isa = PBXGroup;
+			children = (
+				B369E3A82C2CA79B001BC399 /* SharpKnifeApp.swift */,
+				B369E3AA2C2CA79B001BC399 /* ContentView.swift */,
+				B369E3AC2C2CA79B001BC399 /* Item.swift */,
+				B369E3AE2C2CA79E001BC399 /* Assets.xcassets */,
+				B369E3B02C2CA79E001BC399 /* Preview Content */,
+			);
+			path = SharpKnife;
+			sourceTree = "<group>";
+		};
+		B369E3B02C2CA79E001BC399 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				B369E3B12C2CA79E001BC399 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		B369E3BA2C2CA79E001BC399 /* SharpKnifeTests */ = {
+			isa = PBXGroup;
+			children = (
+				B369E3BB2C2CA79E001BC399 /* SharpKnifeTests.swift */,
+			);
+			path = SharpKnifeTests;
+			sourceTree = "<group>";
+		};
+		B369E3C42C2CA79E001BC399 /* SharpKnifeUITests */ = {
+			isa = PBXGroup;
+			children = (
+				B369E3C52C2CA79E001BC399 /* SharpKnifeUITests.swift */,
+				B369E3C72C2CA79E001BC399 /* SharpKnifeUITestsLaunchTests.swift */,
+			);
+			path = SharpKnifeUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B369E3A42C2CA79B001BC399 /* SharpKnife */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B369E3CB2C2CA79E001BC399 /* Build configuration list for PBXNativeTarget "SharpKnife" */;
+			buildPhases = (
+				B369E3A12C2CA79B001BC399 /* Sources */,
+				B369E3A22C2CA79B001BC399 /* Frameworks */,
+				B369E3A32C2CA79B001BC399 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SharpKnife;
+			productName = SharpKnife;
+			productReference = B369E3A52C2CA79B001BC399 /* SharpKnife.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B369E3B62C2CA79E001BC399 /* SharpKnifeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B369E3CE2C2CA79E001BC399 /* Build configuration list for PBXNativeTarget "SharpKnifeTests" */;
+			buildPhases = (
+				B369E3B32C2CA79E001BC399 /* Sources */,
+				B369E3B42C2CA79E001BC399 /* Frameworks */,
+				B369E3B52C2CA79E001BC399 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B369E3B92C2CA79E001BC399 /* PBXTargetDependency */,
+			);
+			name = SharpKnifeTests;
+			productName = SharpKnifeTests;
+			productReference = B369E3B72C2CA79E001BC399 /* SharpKnifeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		B369E3C02C2CA79E001BC399 /* SharpKnifeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B369E3D12C2CA79E001BC399 /* Build configuration list for PBXNativeTarget "SharpKnifeUITests" */;
+			buildPhases = (
+				B369E3BD2C2CA79E001BC399 /* Sources */,
+				B369E3BE2C2CA79E001BC399 /* Frameworks */,
+				B369E3BF2C2CA79E001BC399 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B369E3C32C2CA79E001BC399 /* PBXTargetDependency */,
+			);
+			name = SharpKnifeUITests;
+			productName = SharpKnifeUITests;
+			productReference = B369E3C12C2CA79E001BC399 /* SharpKnifeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B369E39D2C2CA79B001BC399 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					B369E3A42C2CA79B001BC399 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					B369E3B62C2CA79E001BC399 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = B369E3A42C2CA79B001BC399;
+					};
+					B369E3C02C2CA79E001BC399 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = B369E3A42C2CA79B001BC399;
+					};
+				};
+			};
+			buildConfigurationList = B369E3A02C2CA79B001BC399 /* Build configuration list for PBXProject "SharpKnife" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B369E39C2C2CA79B001BC399;
+			productRefGroup = B369E3A62C2CA79B001BC399 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B369E3A42C2CA79B001BC399 /* SharpKnife */,
+				B369E3B62C2CA79E001BC399 /* SharpKnifeTests */,
+				B369E3C02C2CA79E001BC399 /* SharpKnifeUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B369E3A32C2CA79B001BC399 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B369E3B22C2CA79E001BC399 /* Preview Assets.xcassets in Resources */,
+				B369E3AF2C2CA79E001BC399 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B369E3B52C2CA79E001BC399 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B369E3BF2C2CA79E001BC399 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B369E3A12C2CA79B001BC399 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B369E3AB2C2CA79B001BC399 /* ContentView.swift in Sources */,
+				B369E3AD2C2CA79B001BC399 /* Item.swift in Sources */,
+				B369E3A92C2CA79B001BC399 /* SharpKnifeApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B369E3B32C2CA79E001BC399 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B369E3BC2C2CA79E001BC399 /* SharpKnifeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B369E3BD2C2CA79E001BC399 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B369E3C62C2CA79E001BC399 /* SharpKnifeUITests.swift in Sources */,
+				B369E3C82C2CA79E001BC399 /* SharpKnifeUITestsLaunchTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B369E3B92C2CA79E001BC399 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B369E3A42C2CA79B001BC399 /* SharpKnife */;
+			targetProxy = B369E3B82C2CA79E001BC399 /* PBXContainerItemProxy */;
+		};
+		B369E3C32C2CA79E001BC399 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B369E3A42C2CA79B001BC399 /* SharpKnife */;
+			targetProxy = B369E3C22C2CA79E001BC399 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		B369E3C92C2CA79E001BC399 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		B369E3CA2C2CA79E001BC399 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B369E3CC2C2CA79E001BC399 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"SharpKnife/Preview Content\"";
+				DEVELOPMENT_TEAM = LA3F5D34Z4;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.waltmoorhouse.SharpKnife;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B369E3CD2C2CA79E001BC399 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"SharpKnife/Preview Content\"";
+				DEVELOPMENT_TEAM = LA3F5D34Z4;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.waltmoorhouse.SharpKnife;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B369E3CF2C2CA79E001BC399 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LA3F5D34Z4;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.waltmoorhouse.SharpKnifeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SharpKnife.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SharpKnife";
+			};
+			name = Debug;
+		};
+		B369E3D02C2CA79E001BC399 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LA3F5D34Z4;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.waltmoorhouse.SharpKnifeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SharpKnife.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SharpKnife";
+			};
+			name = Release;
+		};
+		B369E3D22C2CA79E001BC399 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LA3F5D34Z4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.waltmoorhouse.SharpKnifeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SharpKnife;
+			};
+			name = Debug;
+		};
+		B369E3D32C2CA79E001BC399 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LA3F5D34Z4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.waltmoorhouse.SharpKnifeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SharpKnife;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B369E3A02C2CA79B001BC399 /* Build configuration list for PBXProject "SharpKnife" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B369E3C92C2CA79E001BC399 /* Debug */,
+				B369E3CA2C2CA79E001BC399 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B369E3CB2C2CA79E001BC399 /* Build configuration list for PBXNativeTarget "SharpKnife" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B369E3CC2C2CA79E001BC399 /* Debug */,
+				B369E3CD2C2CA79E001BC399 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B369E3CE2C2CA79E001BC399 /* Build configuration list for PBXNativeTarget "SharpKnifeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B369E3CF2C2CA79E001BC399 /* Debug */,
+				B369E3D02C2CA79E001BC399 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B369E3D12C2CA79E001BC399 /* Build configuration list for PBXNativeTarget "SharpKnifeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B369E3D22C2CA79E001BC399 /* Debug */,
+				B369E3D32C2CA79E001BC399 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B369E39D2C2CA79B001BC399 /* Project object */;
+}

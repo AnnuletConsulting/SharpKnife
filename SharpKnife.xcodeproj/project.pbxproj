@@ -16,6 +16,14 @@
 		B3A54EE52C2CA9650050722E /* LogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EE42C2CA9650050722E /* LogViewController.swift */; };
 		B3A54EE72C2CA9940050722E /* KnivesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EE62C2CA9940050722E /* KnivesViewController.swift */; };
 		B3A54EE92C2CA9DB0050722E /* SharpenersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EE82C2CA9DB0050722E /* SharpenersViewController.swift */; };
+		B3A54EEF2C2CB7C60050722E /* DataStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EEE2C2CB7C60050722E /* DataStorage.swift */; };
+		B3A54EF12C2CB7E70050722E /* SharpenerCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EF02C2CB7E70050722E /* SharpenerCell.swift */; };
+		B3A54EF32C2CB8000050722E /* KnifeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EF22C2CB8000050722E /* KnifeCell.swift */; };
+		B3A54EF52C2CB8150050722E /* LogEntryCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EF42C2CB8150050722E /* LogEntryCell.swift */; };
+		B3A54EF92C2CB8500050722E /* Knife.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EF82C2CB8500050722E /* Knife.swift */; };
+		B3A54EFB2C2CB8620050722E /* LogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EFA2C2CB8620050722E /* LogEntry.swift */; };
+		B3A54EFD2C2CB8750050722E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EFC2C2CB8750050722E /* SceneDelegate.swift */; };
+		B3A54F1D2C2CBA2C0050722E /* Sharpener.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EF62C2CB82F0050722E /* Sharpener.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +57,14 @@
 		B3A54EE62C2CA9940050722E /* KnivesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnivesViewController.swift; sourceTree = "<group>"; };
 		B3A54EE82C2CA9DB0050722E /* SharpenersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharpenersViewController.swift; sourceTree = "<group>"; };
 		B3A54EEA2C2CAB720050722E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		B3A54EEE2C2CB7C60050722E /* DataStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DataStorage.swift; path = SharpKnife/DataStorage.swift; sourceTree = SOURCE_ROOT; };
+		B3A54EF02C2CB7E70050722E /* SharpenerCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SharpenerCell.swift; path = SharpKnife/SharpenerCell.swift; sourceTree = SOURCE_ROOT; };
+		B3A54EF22C2CB8000050722E /* KnifeCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KnifeCell.swift; path = SharpKnife/KnifeCell.swift; sourceTree = SOURCE_ROOT; };
+		B3A54EF42C2CB8150050722E /* LogEntryCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LogEntryCell.swift; path = SharpKnife/LogEntryCell.swift; sourceTree = SOURCE_ROOT; };
+		B3A54EF62C2CB82F0050722E /* Sharpener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Sharpener.swift; path = SharpKnife/Sharpener.swift; sourceTree = SOURCE_ROOT; };
+		B3A54EF82C2CB8500050722E /* Knife.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Knife.swift; path = SharpKnife/Knife.swift; sourceTree = SOURCE_ROOT; };
+		B3A54EFA2C2CB8620050722E /* LogEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LogEntry.swift; path = SharpKnife/LogEntry.swift; sourceTree = SOURCE_ROOT; };
+		B3A54EFC2C2CB8750050722E /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +123,7 @@
 				B369E3AE2C2CA79E001BC399 /* Assets.xcassets */,
 				B369E3B02C2CA79E001BC399 /* Preview Content */,
 				B369E3D42C2CA7EF001BC399 /* AppDelegate.swift */,
+				B3A54EFC2C2CB8750050722E /* SceneDelegate.swift */,
 			);
 			path = SharpKnife;
 			sourceTree = "<group>";
@@ -149,6 +166,9 @@
 		B369E3D72C2CA863001BC399 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				B3A54EF62C2CB82F0050722E /* Sharpener.swift */,
+				B3A54EF82C2CB8500050722E /* Knife.swift */,
+				B3A54EFA2C2CB8620050722E /* LogEntry.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -156,6 +176,9 @@
 		B369E3D82C2CA86B001BC399 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				B3A54EF02C2CB7E70050722E /* SharpenerCell.swift */,
+				B3A54EF22C2CB8000050722E /* KnifeCell.swift */,
+				B3A54EF42C2CB8150050722E /* LogEntryCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -163,6 +186,7 @@
 		B369E3D92C2CA879001BC399 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				B3A54EEE2C2CB7C60050722E /* DataStorage.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -298,9 +322,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3A54EE72C2CA9940050722E /* KnivesViewController.swift in Sources */,
+				B3A54EF92C2CB8500050722E /* Knife.swift in Sources */,
+				B3A54EF52C2CB8150050722E /* LogEntryCell.swift in Sources */,
+				B3A54EFB2C2CB8620050722E /* LogEntry.swift in Sources */,
 				B369E3D52C2CA7EF001BC399 /* AppDelegate.swift in Sources */,
+				B3A54EF32C2CB8000050722E /* KnifeCell.swift in Sources */,
+				B3A54EF12C2CB7E70050722E /* SharpenerCell.swift in Sources */,
+				B3A54EEF2C2CB7C60050722E /* DataStorage.swift in Sources */,
 				B3A54EE52C2CA9650050722E /* LogViewController.swift in Sources */,
 				B3A54EE92C2CA9DB0050722E /* SharpenersViewController.swift in Sources */,
+				B3A54F1D2C2CBA2C0050722E /* Sharpener.swift in Sources */,
+				B3A54EFD2C2CB8750050722E /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

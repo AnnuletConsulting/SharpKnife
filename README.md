@@ -924,3 +924,302 @@ class DataStorage {
 ```
 
 This solution ensures that the `Sharpener` struct conforms to `Codable`, allowing you to serialize and deserialize it with complex types like `[(String, String)]`.
+
+##Input
+```
+This code compiles, but when I run it on an iPhone, I just get a blank screen. Why?
+```
+
+##Output
+Getting a blank screen on your iPhone when running the app can be caused by a few different issues. Here are some common reasons and how to fix them:
+
+1. **Window and Root View Controller Setup**: Ensure that the window and root view controller are correctly set up in the `SceneDelegate`.
+
+2. **Missing Views or Constraints**: Ensure that your views and constraints are correctly set up so that the UI elements are displayed properly.
+
+3. **Data Source and Delegate Implementation**: Ensure that your table view's data source and delegate methods are correctly implemented and that data is being loaded.
+
+Here’s a checklist and code snippets to help you debug and fix the issue:
+
+### 1. Ensure `SceneDelegate` is Correctly Set Up
+Make sure that you are properly setting the root view controller in `SceneDelegate.swift`.
+
+```swift
+import UIKit
+
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    var window: UIWindow?
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = (scene as? UIWindowScene) else { return }
+        window = UIWindow(windowScene: windowScene)
+
+        let tabBarController = UITabBarController()
+
+        let logVC = UINavigationController(rootViewController: LogViewController())
+        let knivesVC = UINavigationController(rootViewController: KnivesViewController())
+        let sharpenersVC = UINavigationController(rootViewController: SharpenersViewController())
+
+        logVC.tabBarItem = UITabBarItem(title: "Log", image: UIImage(systemName: "list.bullet"), tag: 0)
+        knivesVC.tabBarItem = UITabBarItem(title: "Knives", image: UIImage(systemName: "scissors"), tag: 1)
+        sharpenersVC.tabBarItem = UITabBarItem(title: "Sharpeners", image: UIImage(systemName: "wrench"), tag: 2)
+
+        tabBarController.viewControllers = [logVC, knivesVC, sharpenersVC]
+        tabBarController.selectedIndex = 0
+
+        window?.rootViewController = tabBarController
+        window?.makeKeyAndVisible()
+    }
+
+    func sceneDidDisconnect(_ scene: UIScene) {}
+    func sceneDidBecomeActive(_ scene: UIScene) {}
+    func sceneWillResignActive(_ scene: UIScene) {}
+    func sceneWillEnterForeground(_ scene: UIScene) {}
+    func sceneDidEnterBackground(_ scene: UIScene) {}
+}
+```
+
+### 2. Verify View Setup in View Controllers
+Ensure that views and constraints are set up correctly in your view controllers.
+
+#### LogViewController.swift
+```swift
+import UIKit
+
+class LogViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var logEntries: [LogEntry] = []
+
+    let tableView = UITableView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Log"
+        view.backgroundColor = .white
+        setupTableView()
+        setupAddButton()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(LogEntryCell.self, forCellReuseIdentifier: "LogEntryCell")
+        view.addSubview(tableView)
+    }
+
+    func setupAddButton() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addLogEntry))
+    }
+
+    @objc func addLogEntry() {
+        let addLogVC = AddLogEntryViewController()
+        addLogVC.delegate = self
+        let navController = UINavigationController(rootViewController: addLogVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return logEntries.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath) as! LogEntryCell
+        let logEntry = logEntries[indexPath.row]
+        cell.configure(with: logEntry)
+        return cell
+    }
+}
+
+extension LogViewController: AddLogEntryViewControllerDelegate {
+    func didSaveLogEntry(_ logEntry: LogEntry) {
+        logEntries.append(logEntry)
+        tableView.reloadData()
+    }
+}
+```
+
+#### LogEntryCell.swift
+```swift
+import UIKit
+
+class LogEntryCell: UITableViewCell {
+    func configure(with logEntry: LogEntry) {
+        textLabel?.text = "\(logEntry.date) - Knife: \(logEntry.knife) - Sharpener: \(logEntry.sharpener)"
+        detailTextLabel?.text = ""
+    }
+}
+```
+
+### 3. Verify DataSource and Delegate Methods
+Make sure that your data source and delegate methods are correctly implemented and that data is being loaded properly.
+
+### 4. Run on Simulator
+Test the app on the simulator first to ensure that it’s not a device-specific issue. If it works on the simulator but not on the device, check for any device-specific settings or constraints.
+
+### Debugging Tips
+1. **Add Breakpoints**: Add breakpoints in your `viewDidLoad` and other lifecycle methods to ensure they are being called.
+2. **Print Statements**: Add print statements to check the flow of execution and data being loaded.
+3. **Check Console for Errors**: Look for any errors or warnings in the Xcode console that might provide clues.
+
+If after checking all these steps, you still get a blank screen, you may want to check for any other configuration issues or provide more details so we can help further.
+
+##Input
+```
+Why are SceneDelegate and App Delegate both creating Tab Bars?
+```
+
+##Output
+You're right. The `SceneDelegate` and `AppDelegate` both seem to be setting up the window and root view controller, which can cause confusion. In iOS 13 and later, `SceneDelegate` is responsible for managing the app's UI lifecycle, while `AppDelegate` handles application-level events.
+
+Let's clean this up by ensuring that `SceneDelegate` is correctly being used to set up the window and root view controller. Here's how you can ensure `SceneDelegate` is correctly configured:
+
+### **AppDelegate.swift**
+Ensure that `AppDelegate` is minimal and does not set up the window or root view controller.
+
+```swift
+import UIKit
+
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
+
+    var window: UIWindow?
+
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        return true
+    }
+
+    // MARK: UISceneSession Lifecycle
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+    }
+
+    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {}
+}
+```
+
+### **SceneDelegate.swift**
+Ensure that `SceneDelegate` is responsible for setting up the window and root view controller.
+
+```swift
+import UIKit
+
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    var window: UIWindow?
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = (scene as? UIWindowScene) else { return }
+        
+        window = UIWindow(windowScene: windowScene)
+        
+        let tabBarController = UITabBarController()
+        
+        let logVC = UINavigationController(rootViewController: LogViewController())
+        let knivesVC = UINavigationController(rootViewController: KnivesViewController())
+        let sharpenersVC = UINavigationController(rootViewController: SharpenersViewController())
+
+        logVC.tabBarItem = UITabBarItem(title: "Log", image: UIImage(systemName: "list.bullet"), tag: 0)
+        knivesVC.tabBarItem = UITabBarItem(title: "Knives", image: UIImage(systemName: "scissors"), tag: 1)
+        sharpenersVC.tabBarItem = UITabBarItem(title: "Sharpeners", image: UIImage(systemName: "wrench"), tag: 2)
+
+        tabBarController.viewControllers = [logVC, knivesVC, sharpenersVC]
+        tabBarController.selectedIndex = 0
+
+        window?.rootViewController = tabBarController
+        window?.makeKeyAndVisible()
+    }
+
+    func sceneDidDisconnect(_ scene: UIScene) {}
+    func sceneDidBecomeActive(_ scene: UIScene) {}
+    func sceneWillResignActive(_ scene: UIScene) {}
+    func sceneWillEnterForeground(_ scene: UIScene) {}
+    func sceneDidEnterBackground(_ scene: UIScene) {}
+}
+```
+
+### Check `Info.plist`
+Ensure that your `Info.plist` file is correctly configured to use the `SceneDelegate`. The presence of `Application Scene Manifest` should indicate that your app is configured to use the scene lifecycle.
+
+```xml
+<key>UIApplicationSceneManifest</key>
+<dict>
+    <key>UIApplicationSupportsMultipleScenes</key>
+    <false/>
+    <key>UISceneConfigurations</key>
+    <dict>
+        <key>UIWindowSceneSessionRoleApplication</key>
+        <array>
+            <dict>
+                <key>UISceneConfigurationName</key>
+                <string>Default Configuration</string>
+                <key>UISceneDelegateClassName</key>
+                <string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+            </dict>
+        </array>
+    </dict>
+</dict>
+```
+
+### Verify `LogViewController` Setup
+Ensure that `LogViewController` and other view controllers are set up correctly.
+
+```swift
+import UIKit
+
+class LogViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var logEntries: [LogEntry] = []
+
+    let tableView = UITableView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Log"
+        view.backgroundColor = .white
+        setupTableView()
+        setupAddButton()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(LogEntryCell.self, forCellReuseIdentifier: "LogEntryCell")
+        view.addSubview(tableView)
+    }
+
+    func setupAddButton() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addLogEntry))
+    }
+
+    @objc func addLogEntry() {
+        let addLogVC = AddLogEntryViewController()
+        addLogVC.delegate = self
+        let navController = UINavigationController(rootViewController: addLogVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return logEntries.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath) as! LogEntryCell
+        let logEntry = logEntries[indexPath.row]
+        cell.configure(with: logEntry)
+        return cell
+    }
+}
+
+extension LogViewController: AddLogEntryViewControllerDelegate {
+    func didSaveLogEntry(_ logEntry: LogEntry) {
+        logEntries.append(logEntry)
+        tableView.reloadData()
+    }
+}
+```
+
+### Debugging Tips
+- **Add Breakpoints**: Add breakpoints in `scene(_:willConnectTo:options:)` to ensure it is being called.
+- **Print Statements**: Use print statements to verify the flow of execution.
+- **Check Console for Errors**: Look for any errors or warnings in the Xcode console that might provide clues.
+
+By following these steps, you should be able to resolve the blank screen issue and ensure that your app's UI is properly displayed.

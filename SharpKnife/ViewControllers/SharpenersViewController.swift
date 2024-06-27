@@ -51,6 +51,8 @@ extension SharpenersViewController: AddSharpenerViewControllerDelegate {
     }
 }
 
+import UIKit
+
 protocol AddSharpenerViewControllerDelegate: AnyObject {
     func didSaveSharpener(_ sharpener: Sharpener)
 }
@@ -65,6 +67,7 @@ class AddSharpenerViewController: UIViewController {
     let addParameterButton = UIButton(type: .system)
     let saveButton = UIButton(type: .system)
     let cancelButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -72,24 +75,27 @@ class AddSharpenerViewController: UIViewController {
         view.backgroundColor = .white
         setupFields()
         setupButtons()
+        setupLayout()
     }
 
     func setupFields() {
         dateTextField.placeholder = "Purchased Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
         typeTextField.placeholder = "Sharpener Type"
-
-        let stackView = UIStackView(arrangedSubviews: [dateTextField, typeTextField, parametersTableView, addParameterButton])
-        stackView.axis = .vertical
-        stackView.spacing = 10
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(stackView)
-
-        NSLayoutConstraint.activate([
-            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
-        ])
+        typeTextField.borderStyle = .roundedRect
 
         parametersTableView.dataSource = self
         parametersTableView.delegate = self
@@ -106,6 +112,14 @@ class AddSharpenerViewController: UIViewController {
 
         cancelButton.setTitle("Cancel", for: .normal)
         cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, typeTextField, parametersTableView, addParameterButton])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
 
         let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
         buttonStackView.axis = .horizontal
@@ -114,9 +128,22 @@ class AddSharpenerViewController: UIViewController {
         view.addSubview(buttonStackView)
 
         NSLayoutConstraint.activate([
-            buttonStackView.topAnchor.constraint(equalTo: addParameterButton.bottomAnchor, constant: 20),
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
             buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
     }
 
     @objc func addParameter() {

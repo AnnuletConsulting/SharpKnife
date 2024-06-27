@@ -1223,3 +1223,422 @@ extension LogViewController: AddLogEntryViewControllerDelegate {
 - **Check Console for Errors**: Look for any errors or warnings in the Xcode console that might provide clues.
 
 By following these steps, you should be able to resolve the blank screen issue and ensure that your app's UI is properly displayed.
+
+## Input
+```
+The app is running now, but when I click on the Knives tab and then the + icon, the Add Knives screen is blank and I get the following error in the console:
+Unable to simultaneously satisfy constraints.
+    Probably at least one of the constraints in the following list is one you don't want. 
+    Try this: 
+        (1) look at each constraint and try to figure out which you don't expect; 
+        (2) find the code that added the unwanted constraint or constraints and fix it. 
+    (Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x600002190050 h=--& v=--& UIButton:0x1090cc320'Pick Image'.minX == 0   (active, names: '|':UIView:0x10a86d990 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x6000021923f0 h=--& v=--& UIButton:0x1090cc320'Pick Image'.width == 0   (active)>",
+    "<NSLayoutConstraint:0x60000218de50 UIStackView:0x1090e5a20.centerX == UIView:0x10a86d990.centerX   (active)>",
+    "<NSLayoutConstraint:0x60000218f840 H:|-(20)-[UIStackView:0x1090e5a20]   (active, names: '|':UIView:0x10a86d990 )>",
+    "<NSLayoutConstraint:0x60000218e300 UIButton:0x1090cc320'Pick Image'.centerX == UIView:0x10a86d990.centerX   (active)>",
+    "<NSLayoutConstraint:0x600002190ff0 'UISV-alignment' UITextField:0x10985fa00.leading == UITextField:0x10981be00.leading   (active)>",
+    "<NSLayoutConstraint:0x6000021911d0 'UISV-alignment' UITextField:0x10985fa00.trailing == UITextField:0x10981be00.trailing   (active)>",
+    "<NSLayoutConstraint:0x600002190000 'UISV-canvas-connection' UIStackView:0x1090e5a20.leading == UITextField:0x10985fa00.leading   (active)>",
+    "<NSLayoutConstraint:0x600002192210 'UISV-canvas-connection' H:[UITextField:0x10985fa00]-(0)-|   (active, names: '|':UIStackView:0x1090e5a20 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x6000021911d0 'UISV-alignment' UITextField:0x10985fa00.trailing == UITextField:0x10981be00.trailing   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+```
+
+## Output
+The error indicates that there are conflicting constraints in your `AddKnifeViewController`'s layout. Specifically, it seems there are issues with the constraints related to the `Pick Image` button and the `UIStackView` containing your text fields.
+
+Let's fix the constraints to ensure they are set up correctly. Here's a revised version of your `AddKnifeViewController` with proper constraints:
+
+### **AddKnifeViewController.swift**
+```swift
+import UIKit
+
+protocol AddKnifeViewControllerDelegate: AnyObject {
+    func didSaveKnife(_ knife: Knife)
+}
+
+class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    weak var delegate: AddKnifeViewControllerDelegate?
+
+    let dateTextField = UITextField()
+    let typeTextField = UITextField()
+    let nameTextField = UITextField()
+    let imageView = UIImageView()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let imagePickerButton = UIButton(type: .system)
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Add Knife"
+        view.backgroundColor = .white
+        setupFields()
+        setupButtons()
+        setupLayout()
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Purchased Date"
+        dateTextField.borderStyle = .roundedRect
+        typeTextField.placeholder = "Knife Type"
+        typeTextField.borderStyle = .roundedRect
+        nameTextField.placeholder = "Knife Name"
+        nameTextField.borderStyle = .roundedRect
+
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = .lightGray
+
+        imagePickerButton.setTitle("Pick Image", for: .normal)
+        imagePickerButton.addTarget(self, action: #selector(pickImage), for: .touchUpInside)
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, typeTextField, nameTextField, imageView, imagePickerButton])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            imageView.heightAnchor.constraint(equalToConstant: 200),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func pickImage() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = .photoLibrary
+        present(imagePicker, animated: true, completion: nil)
+    }
+
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let image = info[.originalImage] as? UIImage {
+            imageView.image = image
+        }
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let type = typeTextField.text, !type.isEmpty,
+              let name = nameTextField.text, !name.isEmpty,
+              let image = imageView.image else {
+            return
+        }
+
+        let knife = Knife(date: date, type: type, name: name, image: image)
+        delegate?.didSaveKnife(knife)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+```
+
+### Key Changes:
+1. **TextField Styles**: Added `borderStyle` to `UITextField` to make it more visible.
+2. **Image View Constraints**: Added a fixed height constraint to the `imageView`.
+3. **Proper Use of Constraints**: Added constraints to center and align the `UIStackView` and button stack view properly within the view.
+
+### Explanation:
+- The `setupLayout()` function ensures that all elements are properly laid out and do not conflict with each other.
+- Using `NSLayoutConstraint.activate([])` to ensure all constraints are active and applied correctly.
+- Added `.translatesAutoresizingMaskIntoConstraints = false` to all views that use Auto Layout.
+
+This should resolve the constraint issues and ensure that the Add Knife screen displays correctly without layout conflicts.
+
+## Input
+```
+Please make the same change to the date fields in AddKnifeViewController and AddLogEntryViewController and show me that code.
+```
+
+## Output
+
+Sure! Below are the updated versions of `AddKnifeViewController` and `AddLogEntryViewController` to use a `UIDatePicker` for the date fields.
+
+### **AddKnifeViewController.swift**
+```swift
+import UIKit
+
+protocol AddKnifeViewControllerDelegate: AnyObject {
+    func didSaveKnife(_ knife: Knife)
+}
+
+class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    weak var delegate: AddKnifeViewControllerDelegate?
+
+    let dateTextField = UITextField()
+    let typeTextField = UITextField()
+    let nameTextField = UITextField()
+    let imageView = UIImageView()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let imagePickerButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Add Knife"
+        view.backgroundColor = .white
+        setupFields()
+        setupButtons()
+        setupLayout()
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Purchased Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        typeTextField.placeholder = "Knife Type"
+        typeTextField.borderStyle = .roundedRect
+        nameTextField.placeholder = "Knife Name"
+        nameTextField.borderStyle = .roundedRect
+
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = .lightGray
+
+        imagePickerButton.setTitle("Pick Image", for: .normal)
+        imagePickerButton.addTarget(self, action: #selector(pickImage), for: .touchUpInside)
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, typeTextField, nameTextField, imageView, imagePickerButton])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            imageView.heightAnchor.constraint(equalToConstant: 200),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func pickImage() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = .photoLibrary
+        present(imagePicker, animated: true, completion: nil)
+    }
+
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let image = info[.originalImage] as? UIImage {
+            imageView.image = image
+        }
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let type = typeTextField.text, !type.isEmpty,
+              let name = nameTextField.text, !name.isEmpty,
+              let image = imageView.image else {
+            return
+        }
+
+        let knife = Knife(date: date, type: type, name: name, image: image)
+        delegate?.didSaveKnife(knife)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+```
+
+### **AddLogEntryViewController.swift**
+```swift
+import UIKit
+
+protocol AddLogEntryViewControllerDelegate: AnyObject {
+    func didSaveLogEntry(_ logEntry: LogEntry)
+}
+
+class AddLogEntryViewController: UIViewController {
+    weak var delegate: AddLogEntryViewControllerDelegate?
+
+    let dateTextField = UITextField()
+    let knifeTextField = UITextField()
+    let sharpenerTextField = UITextField()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Add Log Entry"
+        view.backgroundColor = .white
+        setupFields()
+        setupButtons()
+        setupLayout()
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        knifeTextField.placeholder = "Knife"
+        knifeTextField.borderStyle = .roundedRect
+        sharpenerTextField.placeholder = "Sharpener"
+        sharpenerTextField.borderStyle = .roundedRect
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, knifeTextField, sharpenerTextField])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let knife = knifeTextField.text, !knife.isEmpty,
+              let sharpener = sharpenerTextField.text, !sharpener.isEmpty else {
+            return
+        }
+
+        let logEntry = LogEntry(date: date, knife: knife, sharpener: sharpener)
+        delegate?.didSaveLogEntry(logEntry)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+```
+
+### Key Changes:
+1. **Date Picker Setup**: Added a `UIDatePicker` instance and configured it to use the `.date` mode and `.wheels` style.
+2. **Toolbar with Done Button**: Created a toolbar with a "Done" button to dismiss the date picker and set the selected date on the `dateTextField`.
+3. **TextField InputView and InputAccessoryView**: Set the `date
+
+TextField`'s `inputView` to the date picker and `inputAccessoryView` to the toolbar.
+
+### Explanation:
+- The `UIDatePicker` allows users to select a date.
+- The toolbar provides a convenient way to dismiss the date picker and set the selected date in the text field.
+- The `doneButtonTapped()` method formats the selected date and displays it in the `dateTextField`.
+
+This change should make the "Purchased Date" field in `AddKnifeViewController` and the "Date" field in `AddLogEntryViewController` use a date picker instead of a text input, improving the user experience and avoiding manual date entry errors.
+
+

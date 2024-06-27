@@ -42,6 +42,7 @@ class DataStorage {
         if let savedData = UserDefaults.standard.data(forKey: knivesKey) {
             let decoder = JSONDecoder()
             if let loadedKnives = try? decoder.decode([Knife].self, from: savedData) {
+                print("Loaded Knives: \(loadedKnives)")
                 return loadedKnives
             }
         }
@@ -61,6 +62,7 @@ class DataStorage {
         if let savedData = UserDefaults.standard.data(forKey: sharpenersKey) {
             let decoder = JSONDecoder()
             if let loadedSharpeners = try? decoder.decode([Sharpener].self, from: savedData) {
+                print("Loaded Sharpeners: \(loadedSharpeners)")
                 return loadedSharpeners
             }
         }

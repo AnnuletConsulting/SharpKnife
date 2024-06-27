@@ -24,6 +24,9 @@
 		B3A54EFB2C2CB8620050722E /* LogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EFA2C2CB8620050722E /* LogEntry.swift */; };
 		B3A54EFD2C2CB8750050722E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EFC2C2CB8750050722E /* SceneDelegate.swift */; };
 		B3A54F1D2C2CBA2C0050722E /* Sharpener.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54EF62C2CB82F0050722E /* Sharpener.swift */; };
+		B3A54F2B2C2E1BE20050722E /* AddLogEntryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54F2A2C2E1BE20050722E /* AddLogEntryViewController.swift */; };
+		B3A54F2D2C2E21D90050722E /* AddKnifeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54F2C2C2E21D90050722E /* AddKnifeViewController.swift */; };
+		B3A54F2F2C2E22C80050722E /* AddSharpenerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54F2E2C2E22C80050722E /* AddSharpenerViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,6 +69,9 @@
 		B3A54EFA2C2CB8620050722E /* LogEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LogEntry.swift; path = SharpKnife/LogEntry.swift; sourceTree = SOURCE_ROOT; };
 		B3A54EFC2C2CB8750050722E /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		B3A54F292C2DD6EF0050722E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		B3A54F2A2C2E1BE20050722E /* AddLogEntryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLogEntryViewController.swift; sourceTree = "<group>"; };
+		B3A54F2C2C2E21D90050722E /* AddKnifeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddKnifeViewController.swift; sourceTree = "<group>"; };
+		B3A54F2E2C2E22C80050722E /* AddSharpenerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSharpenerViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,6 +167,9 @@
 				B3A54EE42C2CA9650050722E /* LogViewController.swift */,
 				B3A54EE62C2CA9940050722E /* KnivesViewController.swift */,
 				B3A54EE82C2CA9DB0050722E /* SharpenersViewController.swift */,
+				B3A54F2A2C2E1BE20050722E /* AddLogEntryViewController.swift */,
+				B3A54F2C2C2E21D90050722E /* AddKnifeViewController.swift */,
+				B3A54F2E2C2E22C80050722E /* AddSharpenerViewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -329,10 +338,13 @@
 				B3A54EFB2C2CB8620050722E /* LogEntry.swift in Sources */,
 				B369E3D52C2CA7EF001BC399 /* AppDelegate.swift in Sources */,
 				B3A54EF32C2CB8000050722E /* KnifeCell.swift in Sources */,
+				B3A54F2D2C2E21D90050722E /* AddKnifeViewController.swift in Sources */,
 				B3A54EF12C2CB7E70050722E /* SharpenerCell.swift in Sources */,
 				B3A54EEF2C2CB7C60050722E /* DataStorage.swift in Sources */,
 				B3A54EE52C2CA9650050722E /* LogViewController.swift in Sources */,
 				B3A54EE92C2CA9DB0050722E /* SharpenersViewController.swift in Sources */,
+				B3A54F2F2C2E22C80050722E /* AddSharpenerViewController.swift in Sources */,
+				B3A54F2B2C2E1BE20050722E /* AddLogEntryViewController.swift in Sources */,
 				B3A54F1D2C2CBA2C0050722E /* Sharpener.swift in Sources */,
 				B3A54EFD2C2CB8750050722E /* SceneDelegate.swift in Sources */,
 			);

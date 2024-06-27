@@ -9,6 +9,7 @@ class SharpenersViewController: UIViewController, UITableViewDataSource, UITable
         super.viewDidLoad()
         self.title = "Sharpeners"
         view.backgroundColor = .white
+        sharpeners = DataStorage.shared.loadSharpeners()
         setupTableView()
         setupAddButton()
     }
@@ -47,6 +48,7 @@ class SharpenersViewController: UIViewController, UITableViewDataSource, UITable
 extension SharpenersViewController: AddSharpenerViewControllerDelegate {
     func didSaveSharpener(_ sharpener: Sharpener) {
         sharpeners.append(sharpener)
+        DataStorage.shared.saveSharpeners(sharpeners)
         tableView.reloadData()
     }
 }

@@ -9,6 +9,7 @@ class KnivesViewController: UIViewController, UITableViewDataSource, UITableView
         super.viewDidLoad()
         self.title = "Knives"
         view.backgroundColor = .white
+        knives = DataStorage.shared.loadKnives()
         setupTableView()
         setupAddButton()
     }
@@ -47,6 +48,7 @@ class KnivesViewController: UIViewController, UITableViewDataSource, UITableView
 extension KnivesViewController: AddKnifeViewControllerDelegate {
     func didSaveKnife(_ knife: Knife) {
         knives.append(knife)
+        DataStorage.shared.saveKnives(knives)
         tableView.reloadData()
     }
 }

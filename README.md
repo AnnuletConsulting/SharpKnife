@@ -2290,3 +2290,195 @@ Picker {
 - Verify that the `numberOfRowsInComponent` and `titleForRow` methods are returning the correct data.
 
 This setup should ensure that the knives and sharpeners are loaded correctly and displayed in the dropdown lists. If the data is still not loading, ensure that the `saveKnives` and `saveSharpeners` methods are being called correctly to persist the data.
+
+## Input 
+```
+In the KnivesViewController, the didSaveKnives extension function does not call the saveKnives function in DataStorage. 
+Also, in the LogViewViewController, the didSaveLogEntry extension function does not call the saveLogEntry function in DataStorage. 
+Additionally, in the SharpenersViewViewController, the didSaveSharpener extension function does not call the saveSharpeners function in DataStorage. Update those three Controllers and output the code.
+```
+
+## Output
+
+Sure! To ensure that the data is saved correctly, we'll update the `didSaveKnife` function in `KnivesViewController`, the `didSaveLogEntry` function in `LogViewController`, and the `didSaveSharpener` function in `SharpenersViewController` to call the appropriate save functions in `DataStorage`.
+
+### **KnivesViewController.swift**
+```swift
+import UIKit
+
+class KnivesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var knives: [Knife] = []
+
+    let tableView = UITableView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Knives"
+        view.backgroundColor = .white
+        knives = DataStorage.shared.loadKnives()
+        setupTableView()
+        setupAddButton()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(KnifeCell.self, forCellReuseIdentifier: "KnifeCell")
+        view.addSubview(tableView)
+    }
+
+    func setupAddButton() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addKnife))
+    }
+
+    @objc func addKnife() {
+        let addKnifeVC = AddKnifeViewController()
+        addKnifeVC.delegate = self
+        let navController = UINavigationController(rootViewController: addKnifeVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return knives.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "KnifeCell", for: indexPath) as! KnifeCell
+        let knife = knives[indexPath.row]
+        cell.configure(with: knife)
+        return cell
+    }
+}
+
+extension KnivesViewController: AddKnifeViewControllerDelegate {
+    func didSaveKnife(_ knife: Knife) {
+        knives.append(knife)
+        DataStorage.shared.saveKnives(knives)
+        tableView.reloadData()
+    }
+}
+```
+
+### **LogViewController.swift**
+```swift
+import UIKit
+
+class LogViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var logEntries: [LogEntry] = []
+
+    let tableView = UITableView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Log"
+        view.backgroundColor = .white
+        logEntries = DataStorage.shared.loadLogEntries()
+        setupTableView()
+        setupAddButton()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(LogEntryCell.self, forCellReuseIdentifier: "LogEntryCell")
+        view.addSubview(tableView)
+    }
+
+    func setupAddButton() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addLogEntry))
+    }
+
+    @objc func addLogEntry() {
+        let addLogVC = AddLogEntryViewController()
+        addLogVC.delegate = self
+        let navController = UINavigationController(rootViewController: addLogVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return logEntries.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath) as! LogEntryCell
+        let logEntry = logEntries[indexPath.row]
+        cell.configure(with: logEntry)
+        return cell
+    }
+}
+
+extension LogViewController: AddLogEntryViewControllerDelegate {
+    func didSaveLogEntry(_ logEntry: LogEntry) {
+        logEntries.append(logEntry)
+        DataStorage.shared.saveLogEntries(logEntries)
+        tableView.reloadData()
+    }
+}
+```
+
+### **SharpenersViewController.swift**
+```swift
+import UIKit
+
+class SharpenersViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var sharpeners: [Sharpener] = []
+
+    let tableView = UITableView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Sharpeners"
+        view.backgroundColor = .white
+        sharpeners = DataStorage.shared.loadSharpeners()
+        setupTableView()
+        setupAddButton()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(SharpenerCell.self, forCellReuseIdentifier: "SharpenerCell")
+        view.addSubview(tableView)
+    }
+
+    func setupAddButton() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addSharpener))
+    }
+
+    @objc func addSharpener() {
+        let addSharpenerVC = AddSharpenerViewController()
+        addSharpenerVC.delegate = self
+        let navController = UINavigationController(rootViewController: addSharpenerVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return sharpeners.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SharpenerCell", for: indexPath) as! SharpenerCell
+        let sharpener = sharpeners[indexPath.row]
+        cell.configure(with: sharpener)
+        return cell
+    }
+}
+
+extension SharpenersViewController: AddSharpenerViewControllerDelegate {
+    func didSaveSharpener(_ sharpener: Sharpener) {
+        sharpeners.append(sharpener)
+        DataStorage.shared.saveSharpeners(sharpeners)
+        tableView.reloadData()
+    }
+}
+```
+
+### Explanation:
+1. **KnivesViewController**: In the `didSaveKnife` method, append the new knife to the `knives` array and call `DataStorage.shared.saveKnives(knives)` to save the updated list of knives.
+2. **LogViewController**: In the `didSaveLogEntry` method, append the new log entry to the `logEntries` array and call `DataStorage.shared.saveLogEntries(logEntries)` to save the updated list of log entries.
+3. **SharpenersViewController**: In the `didSaveSharpener` method, append the new sharpener to the `sharpeners` array and call `DataStorage.shared.saveSharpeners(sharpeners)` to save the updated list of sharpeners.
+
+This ensures that the new entries are saved to `UserDefaults` whenever a new knife, log entry, or sharpener is added. This should solve the issue of data not being persisted correctly.

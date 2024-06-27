@@ -9,6 +9,7 @@ class LogViewController: UIViewController, UITableViewDataSource, UITableViewDel
         super.viewDidLoad()
         self.title = "Log"
         view.backgroundColor = .white
+        logEntries = DataStorage.shared.loadLogEntries()
         setupTableView()
         setupAddButton()
     }
@@ -47,6 +48,7 @@ class LogViewController: UIViewController, UITableViewDataSource, UITableViewDel
 extension LogViewController: AddLogEntryViewControllerDelegate {
     func didSaveLogEntry(_ logEntry: LogEntry) {
         logEntries.append(logEntry)
+        DataStorage.shared.saveLogEntries(logEntries)
         tableView.reloadData()
     }
 }

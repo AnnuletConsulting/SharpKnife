@@ -55,7 +55,7 @@ protocol AddLogEntryViewControllerDelegate: AnyObject {
     func didSaveLogEntry(_ logEntry: LogEntry)
 }
 
-class AddLogEntryViewController: UIViewController {
+class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate {
     weak var delegate: AddLogEntryViewControllerDelegate?
 
     let dateTextField = UITextField()
@@ -64,6 +64,13 @@ class AddLogEntryViewController: UIViewController {
     let saveButton = UIButton(type: .system)
     let cancelButton = UIButton(type: .system)
     let datePicker = UIDatePicker()
+    let knifePicker = UIPickerView()
+    let sharpenerPicker = UIPickerView()
+
+    var knives: [Knife] = DataStorage.shared.loadKnives()
+    var sharpeners: [Sharpener] = DataStorage.shared.loadSharpeners()
+    var selectedKnife: Knife?
+    var selectedSharpener: Sharpener?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -92,8 +99,23 @@ class AddLogEntryViewController: UIViewController {
 
         knifeTextField.placeholder = "Knife"
         knifeTextField.borderStyle = .roundedRect
+        knifeTextField.inputView = knifePicker
+        knifePicker.dataSource = self
+        knifePicker.delegate = self
+
         sharpenerTextField.placeholder = "Sharpener"
         sharpenerTextField.borderStyle = .roundedRect
+        sharpenerTextField.inputView = sharpenerPicker
+        sharpenerPicker.dataSource = self
+        sharpenerPicker.delegate = self
+
+        // Add a toolbar with a Done button to dismiss the pickers
+        let pickerToolbar = UIToolbar()
+        pickerToolbar.sizeToFit()
+        let pickerDoneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(pickerDoneButtonTapped))
+        pickerToolbar.setItems([pickerDoneButton], animated: true)
+        knifeTextField.inputAccessoryView = pickerToolbar
+        sharpenerTextField.inputAccessoryView = pickerToolbar
     }
 
     func setupButtons() {
@@ -136,19 +158,59 @@ class AddLogEntryViewController: UIViewController {
         dateTextField.resignFirstResponder()
     }
 
+    @objc func pickerDoneButtonTapped() {
+        if knifeTextField.isFirstResponder {
+            let selectedRow = knifePicker.selectedRow(inComponent: 0)
+            selectedKnife = knives[selectedRow]
+            knifeTextField.text = selectedKnife?.name
+            knifeTextField.resignFirstResponder()
+        } else if sharpenerTextField.isFirstResponder {
+            let selectedRow = sharpenerPicker.selectedRow(inComponent: 0)
+            selectedSharpener = sharpeners[selectedRow]
+            sharpenerTextField.text = selectedSharpener?.type
+            sharpenerTextField.resignFirstResponder()
+        }
+    }
+
     @objc func save() {
         guard let date = dateTextField.text, !date.isEmpty,
-              let knife = knifeTextField.text, !knife.isEmpty,
-              let sharpener = sharpenerTextField.text, !sharpener.isEmpty else {
+              let knife = selectedKnife,
+              let sharpener = selectedSharpener else {
             return
         }
 
-        let logEntry = LogEntry(date: date, knife: knife, sharpener: sharpener)
+        let logEntry = LogEntry(date: date, knife: knife.name, sharpener: sharpener.type)
         delegate?.didSaveLogEntry(logEntry)
         dismiss(animated: true, completion: nil)
     }
 
     @objc func cancel() {
         dismiss(animated: true, completion: nil)
+    }
+
+    // MARK: - UIPickerViewDataSource
+
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        if pickerView == knifePicker {
+            return knives.count
+        } else if pickerView == sharpenerPicker {
+            return sharpeners.count
+        }
+        return 0
+    }
+
+    // MARK: - UIPickerViewDelegate
+
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        if pickerView == knifePicker {
+            return knives[row].name
+        } else if pickerView == sharpenerPicker {
+            return sharpeners[row].type
+        }
+        return nil
     }
 }

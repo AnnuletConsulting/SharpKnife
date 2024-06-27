@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 class DataStorage {
     static let shared = DataStorage()

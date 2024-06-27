@@ -1641,4 +1641,652 @@ TextField`'s `inputView` to the date picker and `inputAccessoryView` to the tool
 
 This change should make the "Purchased Date" field in `AddKnifeViewController` and the "Date" field in `AddLogEntryViewController` use a date picker instead of a text input, improving the user experience and avoiding manual date entry errors.
 
+## Input
+```
+On the AddLogEntryViewController, change the Knife field from a text input to a dropdown list that contains all the Knives we have saved. Also change the Sharpener field from a text input to a dropdown list, this one containing all the Sharpeners we have saved. Output the code.
+```
 
+## Output
+
+To implement dropdown lists for the Knife and Sharpener fields in the `AddLogEntryViewController`, you can use `UIPickerView`. Here's how to do it:
+
+1. Create a `UIPickerView` for each field.
+2. Implement the `UIPickerViewDataSource` and `UIPickerViewDelegate` methods to populate the pickers with the saved knives and sharpeners.
+3. Add a toolbar with a "Done" button to dismiss the pickers and set the selected values on the respective text fields.
+
+Here's the updated `AddLogEntryViewController.swift`:
+
+### **AddLogEntryViewController.swift**
+```swift
+import UIKit
+
+protocol AddLogEntryViewControllerDelegate: AnyObject {
+    func didSaveLogEntry(_ logEntry: LogEntry)
+}
+
+class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate {
+    weak var delegate: AddLogEntryViewControllerDelegate?
+
+    let dateTextField = UITextField()
+    let knifeTextField = UITextField()
+    let sharpenerTextField = UITextField()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+    let knifePicker = UIPickerView()
+    let sharpenerPicker = UIPickerView()
+
+    var knives: [Knife] = DataStorage.shared.loadKnives()
+    var sharpeners: [Sharpener] = DataStorage.shared.loadSharpeners()
+    var selectedKnife: Knife?
+    var selectedSharpener: Sharpener?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Add Log Entry"
+        view.backgroundColor = .white
+        setupFields()
+        setupButtons()
+        setupLayout()
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        knifeTextField.placeholder = "Knife"
+        knifeTextField.borderStyle = .roundedRect
+        knifeTextField.inputView = knifePicker
+        knifePicker.dataSource = self
+        knifePicker.delegate = self
+
+        sharpenerTextField.placeholder = "Sharpener"
+        sharpenerTextField.borderStyle = .roundedRect
+        sharpenerTextField.inputView = sharpenerPicker
+        sharpenerPicker.dataSource = self
+        sharpenerPicker.delegate = self
+
+        // Add a toolbar with a Done button to dismiss the pickers
+        let pickerToolbar = UIToolbar()
+        pickerToolbar.sizeToFit()
+        let pickerDoneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(pickerDoneButtonTapped))
+        pickerToolbar.setItems([pickerDoneButton], animated: true)
+        knifeTextField.inputAccessoryView = pickerToolbar
+        sharpenerTextField.inputAccessoryView = pickerToolbar
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, knifeTextField, sharpenerTextField])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func pickerDoneButtonTapped() {
+        if knifeTextField.isFirstResponder {
+            let selectedRow = knifePicker.selectedRow(inComponent: 0)
+            selectedKnife = knives[selectedRow]
+            knifeTextField.text = selectedKnife?.name
+            knifeTextField.resignFirstResponder()
+        } else if sharpenerTextField.isFirstResponder {
+            let selectedRow = sharpenerPicker.selectedRow(inComponent: 0)
+            selectedSharpener = sharpeners[selectedRow]
+            sharpenerTextField.text = selectedSharpener?.type
+            sharpenerTextField.resignFirstResponder()
+        }
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let knife = selectedKnife,
+              let sharpener = selectedSharpener else {
+            return
+        }
+
+        let logEntry = LogEntry(date: date, knife: knife.name, sharpener: sharpener.type)
+        delegate?.didSaveLogEntry(logEntry)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+
+    // MARK: - UIPickerViewDataSource
+
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        if pickerView == knifePicker {
+            return knives.count
+        } else if pickerView == sharpenerPicker {
+            return sharpeners.count
+        }
+        return 0
+    }
+
+    // MARK: - UIPickerViewDelegate
+
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        if pickerView == knifePicker {
+            return knives[row].name
+        } else if pickerView == sharpenerPicker {
+            return sharpeners[row].type
+        }
+        return nil
+    }
+}
+```
+
+### Explanation:
+1. **Date Picker Setup**: Added a `UIDatePicker` instance for the date input.
+2. **Knife Picker Setup**: Added a `UIPickerView` instance for selecting a knife from the saved knives.
+3. **Sharpener Picker Setup**: Added a `UIPickerView` instance for selecting a sharpener from the saved sharpeners.
+4. **Toolbar Setup**: Added a toolbar with a "Done" button to dismiss the pickers and set the selected values in the text fields.
+5. **Picker View DataSource and Delegate**: Implemented the necessary methods to populate and handle the pickers.
+
+### Note:
+- Ensure that `DataStorage.shared.loadKnives()` and `DataStorage.shared.loadSharpeners()` return the saved knives and sharpeners, respectively.
+- You might need to update the `DataStorage` methods to properly load and save the `Knife` and `Sharpener` objects.
+
+This setup provides a better user experience by allowing users to select from the saved knives and sharpeners, rather than manually entering the names.
+
+## Input
+```
+Update the DataStorage methods to properly load and save the Knife and Sharpener objects and output the code.
+```
+
+## Output
+
+To properly load and save `Knife` and `Sharpener` objects using the `DataStorage` class, you need to ensure that you encode and decode these objects correctly, and store them persistently using `UserDefaults`.
+
+Here is the updated `DataStorage.swift`:
+
+### **DataStorage.swift**
+```swift
+import Foundation
+import UIKit
+
+class DataStorage {
+    static let shared = DataStorage()
+
+    private let logEntriesKey = "logEntriesKey"
+    private let knivesKey = "knivesKey"
+    private let sharpenersKey = "sharpenersKey"
+
+    private init() {}
+
+    // Save log entries
+    func saveLogEntries(_ logEntries: [LogEntry]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(logEntries) {
+            UserDefaults.standard.set(encoded, forKey: logEntriesKey)
+        }
+    }
+
+    // Load log entries
+    func loadLogEntries() -> [LogEntry] {
+        if let savedData = UserDefaults.standard.data(forKey: logEntriesKey) {
+            let decoder = JSONDecoder()
+            if let loadedLogEntries = try? decoder.decode([LogEntry].self, from: savedData) {
+                return loadedLogEntries
+            }
+        }
+        return []
+    }
+
+    // Save knives
+    func saveKnives(_ knives: [Knife]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(knives) {
+            UserDefaults.standard.set(encoded, forKey: knivesKey)
+        }
+    }
+
+    // Load knives
+    func loadKnives() -> [Knife] {
+        if let savedData = UserDefaults.standard.data(forKey: knivesKey) {
+            let decoder = JSONDecoder()
+            if let loadedKnives = try? decoder.decode([Knife].self, from: savedData) {
+                return loadedKnives
+            }
+        }
+        return []
+    }
+
+    // Save sharpeners
+    func saveSharpeners(_ sharpeners: [Sharpener]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(sharpeners) {
+            UserDefaults.standard.set(encoded, forKey: sharpenersKey)
+        }
+    }
+
+    // Load sharpeners
+    func loadSharpeners() -> [Sharpener] {
+        if let savedData = UserDefaults.standard.data(forKey: sharpenersKey) {
+            let decoder = JSONDecoder()
+            if let loadedSharpeners = try? decoder.decode([Sharpener].self, from: savedData) {
+                return loadedSharpeners
+            }
+        }
+        return []
+    }
+}
+
+// Models
+struct LogEntry: Codable {
+    var date: String
+    var knife: String
+    var sharpener: String
+}
+
+struct Knife: Codable {
+    var date: String
+    var type: String
+    var name: String
+    var imageData: Data?
+
+    init(date: String, type: String, name: String, image: UIImage) {
+        self.date = date
+        self.type = type
+        self.name = name
+        self.imageData = image.jpegData(compressionQuality: 1.0)
+    }
+}
+
+struct Sharpener: Codable {
+    var date: String
+    var type: String
+    var parameters: [(String, String)]
+
+    enum CodingKeys: String, CodingKey {
+        case date, type, parameters
+    }
+
+    enum ParameterKeys: String, CodingKey {
+        case key, value
+    }
+
+    init(date: String, type: String, parameters: [(String, String)]) {
+        self.date = date
+        self.type = type
+        self.parameters = parameters
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        date = try container.decode(String.self, forKey: .date)
+        type = try container.decode(String.self, forKey: .type)
+        
+        var parametersContainer = try container.nestedUnkeyedContainer(forKey: .parameters)
+        var parametersArray: [(String, String)] = []
+
+        while !parametersContainer.isAtEnd {
+            let parameterContainer = try parametersContainer.nestedContainer(keyedBy: ParameterKeys.self)
+            let key = try parameterContainer.decode(String.self, forKey: .key)
+            let value = try parameterContainer.decode(String.self, forKey: .value)
+            parametersArray.append((key, value))
+        }
+        
+        parameters = parametersArray
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(date, forKey: .date)
+        try container.encode(type, forKey: .type)
+        
+        var parametersContainer = container.nestedUnkeyedContainer(forKey: .parameters)
+        
+        for parameter in parameters {
+            var parameterContainer = parametersContainer.nestedContainer(keyedBy: ParameterKeys.self)
+            try parameterContainer.encode(parameter.0, forKey: .key)
+            try parameterContainer.encode(parameter.1, forKey: .value)
+        }
+    }
+}
+```
+
+### Explanation:
+1. **Encoding and Decoding**: The `Knife` and `Sharpener` structs conform to `Codable` for easy encoding and decoding.
+2. **UserDefaults**: The `DataStorage` class uses `UserDefaults` to persist the data.
+3. **Image Encoding**: The `Knife` struct encodes the image as `Data` using `jpegData(compressionQuality:)` for persistence.
+4. **Manual Encoding/Decoding for Sharpener**: The `Sharpener` struct manually implements `Codable` conformance to handle the `[(String, String)]` type.
+
+This updated `DataStorage` class should correctly save and load `Knife` and `Sharpener` objects, allowing you to populate the dropdown lists in `AddLogEntryViewController`.
+
+## Input
+```
+It still is not loading the data in the dropdown lists. Why?
+```
+
+## Output
+
+To diagnose why the data isn't loading in the dropdown lists, we should check the following:
+
+1. **Ensure that Data is Being Loaded Correctly**: Verify that the `loadKnives()` and `loadSharpeners()` methods in `DataStorage` are correctly returning saved data.
+2. **Ensure that UIPickerView DataSource and Delegate Methods are Called**: Ensure that the `UIPickerView`'s data source and delegate methods are being called.
+3. **Ensure that the View Controllers are Using the Loaded Data**: Make sure the view controllers are using the data returned from `DataStorage` to populate the pickers.
+
+### Step-by-Step Debugging and Fixes
+
+### 1. Verify Data Loading
+
+First, ensure the data is correctly loaded from `UserDefaults`. Add print statements to check if the data is being retrieved correctly.
+
+### **DataStorage.swift**
+```swift
+import Foundation
+import UIKit
+
+class DataStorage {
+    static let shared = DataStorage()
+
+    private let logEntriesKey = "logEntriesKey"
+    private let knivesKey = "knivesKey"
+    private let sharpenersKey = "sharpenersKey"
+
+    private init() {}
+
+    // Save log entries
+    func saveLogEntries(_ logEntries: [LogEntry]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(logEntries) {
+            UserDefaults.standard.set(encoded, forKey: logEntriesKey)
+        }
+    }
+
+    // Load log entries
+    func loadLogEntries() -> [LogEntry] {
+        if let savedData = UserDefaults.standard.data(forKey: logEntriesKey) {
+            let decoder = JSONDecoder()
+            if let loadedLogEntries = try? decoder.decode([LogEntry].self, from: savedData) {
+                return loadedLogEntries
+            }
+        }
+        return []
+    }
+
+    // Save knives
+    func saveKnives(_ knives: [Knife]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(knives) {
+            UserDefaults.standard.set(encoded, forKey: knivesKey)
+        }
+    }
+
+    // Load knives
+    func loadKnives() -> [Knife] {
+        if let savedData = UserDefaults.standard.data(forKey: knivesKey) {
+            let decoder = JSONDecoder()
+            if let loadedKnives = try? decoder.decode([Knife].self, from: savedData) {
+                print("Loaded Knives: \(loadedKnives)")
+                return loadedKnives
+            }
+        }
+        return []
+    }
+
+    // Save sharpeners
+    func saveSharpeners(_ sharpeners: [Sharpener]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(sharpeners) {
+            UserDefaults.standard.set(encoded, forKey: sharpenersKey)
+        }
+    }
+
+    // Load sharpeners
+    func loadSharpeners() -> [Sharpener] {
+        if let savedData = UserDefaults.standard.data(forKey: sharpenersKey) {
+            let decoder = JSONDecoder()
+            if let loadedSharpeners = try? decoder.decode([Sharpener].self, from: savedData) {
+                print("Loaded Sharpeners: \(loadedSharpeners)")
+                return loadedSharpeners
+            }
+        }
+        return []
+    }
+}
+```
+
+### 2. Ensure Picker Data Source and Delegate Methods are Called
+
+Ensure that the `UIPickerView` data source and delegate methods are properly set up and being called.
+
+### **AddLogEntryViewController.swift**
+```swift
+import UIKit
+
+protocol AddLogEntryViewControllerDelegate: AnyObject {
+    func didSaveLogEntry(_ logEntry: LogEntry)
+}
+
+class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate {
+    weak var delegate: AddLogEntryViewControllerDelegate?
+
+    let dateTextField = UITextField()
+    let knifeTextField = UITextField()
+    let sharpenerTextField = UITextField()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+    let knifePicker = UIPickerView()
+    let sharpenerPicker = UIPickerView()
+
+    var knives: [Knife] = []
+    var sharpeners: [Sharpener] = []
+    var selectedKnife: Knife?
+    var selectedSharpener: Sharpener?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Add Log Entry"
+        view.backgroundColor = .white
+
+        // Load knives and sharpeners
+        knives = DataStorage.shared.loadKnives()
+        sharpeners = DataStorage.shared.loadSharpeners()
+
+        // Print loaded data for debugging
+        print("Knives: \(knives)")
+        print("Sharpeners: \(sharpeners)")
+
+        setupFields()
+        setupButtons()
+        setupLayout()
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        knifeTextField.placeholder = "Knife"
+        knifeTextField.borderStyle = .roundedRect
+        knifeTextField.inputView = knifePicker
+        knifePicker.dataSource = self
+        knifePicker.delegate = self
+
+        sharpenerTextField.placeholder = "Sharpener"
+        sharpenerTextField.borderStyle = .roundedRect
+        sharpenerTextField.inputView = sharpenerPicker
+        sharpenerPicker.dataSource = self
+        sharpenerPicker.delegate = self
+
+        // Add a toolbar with a Done button to dismiss the pickers
+        let pickerToolbar = UIToolbar()
+        pickerToolbar.sizeToFit()
+        let pickerDoneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(pickerDoneButtonTapped))
+        pickerToolbar.setItems([pickerDoneButton], animated: true)
+        knifeTextField.inputAccessoryView = pickerToolbar
+        sharpenerTextField.inputAccessoryView = pickerToolbar
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, knifeTextField, sharpenerTextField])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func pickerDoneButtonTapped() {
+        if knifeTextField.isFirstResponder {
+            let selectedRow = knifePicker.selectedRow(inComponent: 0)
+            selectedKnife = knives[selectedRow]
+            knifeTextField.text = selectedKnife?.name
+            knifeTextField.resignFirstResponder()
+        } else if sharpenerTextField.isFirstResponder {
+            let selectedRow = sharpenerPicker.selectedRow(inComponent: 0)
+            selectedSharpener = sharpeners[selectedRow]
+            sharpenerTextField.text = selectedSharpener?.type
+            sharpenerTextField.resignFirstResponder()
+        }
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let knife = selectedKnife,
+              let sharpener = selectedSharpener else {
+            return
+        }
+
+        let logEntry = LogEntry(date: date, knife: knife.name, sharpener: sharpener.type)
+        delegate?.didSaveLogEntry(logEntry)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+
+    // MARK: - UIPickerViewDataSource
+
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        if pickerView == knifePicker {
+            return knives.count
+        } else if pickerView == sharpener
+
+Picker {
+            return sharpeners.count
+        }
+        return 0
+    }
+
+    // MARK: - UIPickerViewDelegate
+
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        if pickerView == knifePicker {
+            return knives[row].name
+        } else if pickerView == sharpenerPicker {
+            return sharpeners[row].type
+        }
+        return nil
+    }
+}
+```
+
+### Explanation:
+1. **Load Knives and Sharpeners**: Load the knives and sharpeners from `DataStorage` in `viewDidLoad` and print them for debugging.
+2. **Verify Picker DataSource and Delegate Methods**: Ensure that `UIPickerViewDataSource` and `UIPickerViewDelegate` methods are correctly set up and called.
+
+### Debugging Tips:
+- Check the console for printed knife and sharpener data.
+- Verify that the `numberOfRowsInComponent` and `titleForRow` methods are returning the correct data.
+
+This setup should ensure that the knives and sharpeners are loaded correctly and displayed in the dropdown lists. If the data is still not loading, ensure that the `saveKnives` and `saveSharpeners` methods are being called correctly to persist the data.

@@ -27,7 +27,7 @@ class KnifeLogViewController: UIViewController, UITableViewDataSource, UITableVi
         tableView.frame = view.bounds
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.register(LogEntryCell.self, forCellReuseIdentifier: "LogEntryCell")
+        tableView.register(LogEntryDetailCell.self, forCellReuseIdentifier: "LogEntryDetailCell")
     }
 
     func setupLayout() {
@@ -64,7 +64,7 @@ class KnifeLogViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath) as! LogEntryCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "LogEntryDetailCell", for: indexPath) as! LogEntryDetailCell
         let logEntry = logEntries[indexPath.row]
         cell.configure(with: logEntry)
         return cell

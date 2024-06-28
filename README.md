@@ -1,4 +1,8 @@
-#  ChatGPT4 code Log
+# Introduction
+
+This project is to show how you can use Generative AI to write an iOS app. Below are the chat logs with the GPTs.  There's a PDF that accompanies this project in the docs folder.
+
+# ChatGPT4 code Log
 
 ## Input
 ```

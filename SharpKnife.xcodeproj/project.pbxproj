@@ -27,6 +27,7 @@
 		B3A54F2B2C2E1BE20050722E /* AddLogEntryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54F2A2C2E1BE20050722E /* AddLogEntryViewController.swift */; };
 		B3A54F2D2C2E21D90050722E /* AddKnifeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54F2C2C2E21D90050722E /* AddKnifeViewController.swift */; };
 		B3A54F2F2C2E22C80050722E /* AddSharpenerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54F2E2C2E22C80050722E /* AddSharpenerViewController.swift */; };
+		B3A54F312C2E67DC0050722E /* ParameterCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54F302C2E67DC0050722E /* ParameterCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +73,7 @@
 		B3A54F2A2C2E1BE20050722E /* AddLogEntryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLogEntryViewController.swift; sourceTree = "<group>"; };
 		B3A54F2C2C2E21D90050722E /* AddKnifeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddKnifeViewController.swift; sourceTree = "<group>"; };
 		B3A54F2E2C2E22C80050722E /* AddSharpenerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSharpenerViewController.swift; sourceTree = "<group>"; };
+		B3A54F302C2E67DC0050722E /* ParameterCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ParameterCell.swift; path = SharpKnife/ViewControllers/ParameterCell.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -190,6 +192,7 @@
 				B3A54EF02C2CB7E70050722E /* SharpenerCell.swift */,
 				B3A54EF22C2CB8000050722E /* KnifeCell.swift */,
 				B3A54EF42C2CB8150050722E /* LogEntryCell.swift */,
+				B3A54F302C2E67DC0050722E /* ParameterCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -347,6 +350,7 @@
 				B3A54F2B2C2E1BE20050722E /* AddLogEntryViewController.swift in Sources */,
 				B3A54F1D2C2CBA2C0050722E /* Sharpener.swift in Sources */,
 				B3A54EFD2C2CB8750050722E /* SceneDelegate.swift in Sources */,
+				B3A54F312C2E67DC0050722E /* ParameterCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

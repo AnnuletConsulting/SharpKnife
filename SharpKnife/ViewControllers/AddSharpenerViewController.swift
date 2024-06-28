@@ -56,7 +56,7 @@ class AddSharpenerViewController: UIViewController {
 
         parametersTableView.dataSource = self
         parametersTableView.delegate = self
-        parametersTableView.register(UITableViewCell.self, forCellReuseIdentifier: "ParameterCell")
+        parametersTableView.register(ParameterCell.self, forCellReuseIdentifier: "ParameterCell")
         parametersTableView.heightAnchor.constraint(equalToConstant: 200).isActive = true
 
         addParameterButton.setTitle("Add Parameter", for: .normal)
@@ -141,24 +141,12 @@ extension AddSharpenerViewController: UITableViewDataSource, UITableViewDelegate
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ParameterCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ParameterCell", for: indexPath) as! ParameterCell
         let parameter = parameters[indexPath.row]
-        cell.textLabel?.text = parameter
-        cell.accessoryView = createDeleteButton(for: indexPath.row)
+        cell.configure(with: parameter, deleteAction: { [weak self] in
+            self?.parameters.remove(at: indexPath.row)
+            self?.parametersTableView.reloadData()
+        })
         return cell
-    }
-
-    func createDeleteButton(for index: Int) -> UIButton {
-        let button = UIButton(type: .custom)
-        button.setImage(UIImage(systemName: "trash"), for: .normal)
-        button.tag = index
-        button.addTarget(self, action: #selector(deleteParameter), for: .touchUpInside)
-        return button
-    }
-
-    @objc func deleteParameter(sender: UIButton) {
-        let index = sender.tag
-        parameters.remove(at: index)
-        parametersTableView.reloadData()
     }
 }

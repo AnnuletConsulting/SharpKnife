@@ -45,7 +45,7 @@ class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPic
             selectedKnife = knives.first { $0.name == logEntry.knife }
             selectedSharpener = sharpeners.first { $0.type == logEntry.sharpener }
             if let selectedSharpener = selectedSharpener {
-                createParameterFields(for: selectedSharpener)
+                createParameterFields(for: selectedSharpener, with: logEntry.parameters)
             }
         }
     }
@@ -142,12 +142,15 @@ class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPic
         }
     }
 
-    func createParameterFields(for sharpener: Sharpener) {
+    func createParameterFields(for sharpener: Sharpener, with values: [String] = []) {
         parameterFields.forEach { $0.removeFromSuperview() }
-        parameterFields = sharpener.parameters.map { parameter in
+        parameterFields = sharpener.parameters.enumerated().map { (index, parameter) in
             let textField = UITextField()
             textField.placeholder = parameter
             textField.borderStyle = .roundedRect
+            if values.count > index {
+                textField.text = values[index]
+            }
             return textField
         }
         let stackView = view.subviews.compactMap { $0 as? UIStackView }.first!

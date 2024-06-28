@@ -4500,4 +4500,827 @@ When I save a Log Entry it is not saving the values I entered in the parameter f
 
 ## Output
 
+Sure, let's address both issues.
 
+### 1. **Saving and Loading Parameter Values in LogEntry**
+Update the `AddLogEntryViewController` to ensure the values entered in the parameter fields are saved and repopulated correctly when editing a log entry.
+
+### 2. **Displaying Delete Buttons for Parameters in Add/Edit Sharpener Page**
+Ensure the delete buttons are correctly added and displayed for each parameter on the `AddSharpenerViewController`.
+
+Here is the updated code:
+
+### **AddLogEntryViewController.swift**
+Update to ensure parameter values are saved and repopulated correctly:
+
+```swift
+import UIKit
+
+protocol AddLogEntryViewControllerDelegate: AnyObject {
+    func didSaveLogEntry(_ logEntry: LogEntry, at index: Int?)
+}
+
+class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate {
+    weak var delegate: AddLogEntryViewControllerDelegate?
+
+    var logEntryToEdit: LogEntry?
+    var logEntryIndex: Int?
+
+    let dateTextField = UITextField()
+    let knifeTextField = UITextField()
+    let sharpenerTextField = UITextField()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+    let knifePicker = UIPickerView()
+    let sharpenerPicker = UIPickerView()
+
+    var knives: [Knife] = []
+    var sharpeners: [Sharpener] = []
+    var selectedKnife: Knife?
+    var selectedSharpener: Sharpener?
+    var parameterFields: [UITextField] = []
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = logEntryToEdit == nil ? "Add Log Entry" : "Edit Log Entry"
+        view.backgroundColor = .white
+
+        // Load knives and sharpeners
+        knives = DataStorage.shared.loadKnives()
+        sharpeners = DataStorage.shared.loadSharpeners()
+
+        setupFields()
+        setupButtons()
+        setupLayout()
+
+        if let logEntry = logEntryToEdit {
+            dateTextField.text = logEntry.date
+            knifeTextField.text = logEntry.knife
+            sharpenerTextField.text = logEntry.sharpener
+            selectedKnife = knives.first { $0.name == logEntry.knife }
+            selectedSharpener = sharpeners.first { $0.type == logEntry.sharpener }
+            if let selectedSharpener = selectedSharpener {
+                createParameterFields(for: selectedSharpener, with: logEntry.parameters)
+            }
+        }
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        knifeTextField.placeholder = "Knife"
+        knifeTextField.borderStyle = .roundedRect
+        knifeTextField.inputView = knifePicker
+        knifePicker.dataSource = self
+        knifePicker.delegate = self
+
+        sharpenerTextField.placeholder = "Sharpener"
+        sharpenerTextField.borderStyle = .roundedRect
+        sharpenerTextField.inputView = sharpenerPicker
+        sharpenerPicker.dataSource = self
+        sharpenerPicker.delegate = self
+
+        // Add a toolbar with a Done button to dismiss the pickers
+        let pickerToolbar = UIToolbar()
+        pickerToolbar.sizeToFit()
+        let pickerDoneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(pickerDoneButtonTapped))
+        pickerToolbar.setItems([pickerDoneButton], animated: true)
+        knifeTextField.inputAccessoryView = pickerToolbar
+        sharpenerTextField.inputAccessoryView = pickerToolbar
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, knifeTextField, sharpenerTextField])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func pickerDoneButtonTapped() {
+        if knifeTextField.isFirstResponder {
+            let selectedRow = knifePicker.selectedRow(inComponent: 0)
+            selectedKnife = knives[selectedRow]
+            knifeTextField.text = selectedKnife?.name
+            knifeTextField.resignFirstResponder()
+        } else if sharpenerTextField.isFirstResponder {
+            let selectedRow = sharpenerPicker.selectedRow(inComponent: 0)
+            selectedSharpener = sharpeners[selectedRow]
+            sharpenerTextField.text = selectedSharpener?.type
+            createParameterFields(for: selectedSharpener!)
+            sharpenerTextField.resignFirstResponder()
+        }
+    }
+
+    func createParameterFields(for sharpener: Sharpener, with values: [String] = []) {
+        parameterFields.forEach { $0.removeFromSuperview() }
+        parameterFields = sharpener.parameters.enumerated().map { (index, parameter) in
+            let textField = UITextField()
+            textField.placeholder = parameter
+            textField.borderStyle = .roundedRect
+            if values.count > index {
+                textField.text = values[index]
+            }
+            return textField
+        }
+        let stackView = view.subviews.compactMap { $0 as? UIStackView }.first!
+        parameterFields.forEach { stackView.addArrangedSubview($0) }
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let knife = selectedKnife,
+              let sharpener = selectedSharpener else {
+            return
+        }
+
+        let parameters = parameterFields.map { $0.text ?? "" }
+        let logEntry = LogEntry(date: date, knife: knife.name, sharpener: sharpener.type, parameters: parameters)
+        delegate?.didSaveLogEntry(logEntry, at: logEntryIndex)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+
+    // MARK: - UIPickerViewDataSource
+
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        if pickerView == knifePicker {
+            return knives.count
+        } else if pickerView == sharpenerPicker {
+            return sharpeners.count
+        }
+        return 0
+    }
+
+    // MARK: - UIPickerViewDelegate
+
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        if pickerView == knifePicker {
+            return knives[row].name
+        } else if pickerView == sharpenerPicker {
+            return sharpeners[row].type
+        }
+        return nil
+    }
+}
+```
+
+### **AddSharpenerViewController.swift**
+Ensure the delete buttons for parameters are visible and functional:
+
+```swift
+import UIKit
+
+protocol AddSharpenerViewControllerDelegate: AnyObject {
+    func didSaveSharpener(_ sharpener: Sharpener, at index: Int?)
+}
+
+class AddSharpenerViewController: UIViewController {
+    weak var delegate: AddSharpenerViewControllerDelegate?
+
+    var sharpenerToEdit: Sharpener?
+    var sharpenerIndex: Int?
+
+    let dateTextField = UITextField()
+    let typeTextField = UITextField()
+    let parametersTableView = UITableView()
+    var parameters: [String] = []
+    let addParameterButton = UIButton(type: .system)
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = sharpenerToEdit == nil ? "Add Sharpener" : "Edit Sharpener
+
+"
+        view.backgroundColor = .white
+        setupFields()
+        setupButtons()
+        setupLayout()
+
+        if let sharpener = sharpenerToEdit {
+            dateTextField.text = sharpener.date
+            typeTextField.text = sharpener.type
+            parameters = sharpener.parameters
+            parametersTableView.reloadData()
+        }
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Purchased Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        typeTextField.placeholder = "Sharpener Type"
+        typeTextField.borderStyle = .roundedRect
+
+        parametersTableView.dataSource = self
+        parametersTableView.delegate = self
+        parametersTableView.register(UITableViewCell.self, forCellReuseIdentifier: "ParameterCell")
+        parametersTableView.heightAnchor.constraint(equalToConstant: 200).isActive = true
+
+        addParameterButton.setTitle("Add Parameter", for: .normal)
+        addParameterButton.addTarget(self, action: #selector(addParameter), for: .touchUpInside)
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, typeTextField, parametersTableView, addParameterButton])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func addParameter() {
+        let alert = UIAlertController(title: "Add Parameter", message: nil, preferredStyle: .alert)
+        alert.addTextField { textField in
+            textField.placeholder = "Parameter"
+        }
+        alert.addAction(UIAlertAction(title: "Add", style: .default, handler: { [weak self] _ in
+            guard let parameter = alert.textFields?[0].text, !parameter.isEmpty else {
+                return
+            }
+            self?.parameters.append(parameter)
+            self?.parametersTableView.reloadData()
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let type = typeTextField.text, !type.isEmpty else {
+            return
+        }
+
+        let sharpener = Sharpener(date: date, type: type, parameters: parameters)
+        delegate?.didSaveSharpener(sharpener, at: sharpenerIndex)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+
+extension AddSharpenerViewController: UITableViewDataSource, UITableViewDelegate {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return parameters.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ParameterCell", for: indexPath)
+        let parameter = parameters[indexPath.row]
+        cell.textLabel?.text = parameter
+        cell.accessoryView = createDeleteButton(for: indexPath.row)
+        return cell
+    }
+
+    func createDeleteButton(for index: Int) -> UIButton {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "trash"), for: .normal)
+        button.tag = index
+        button.addTarget(self, action: #selector(deleteParameter), for: .touchUpInside)
+        return button
+    }
+
+    @objc func deleteParameter(sender: UIButton) {
+        let index = sender.tag
+        parameters.remove(at: index)
+        parametersTableView.reloadData()
+    }
+}
+```
+
+These changes ensure that the values entered in the dynamically created parameter fields are saved when creating or editing a `LogEntry`. Additionally, the delete buttons for parameters in the `AddSharpenerViewController` are visible and functional.
+
+## Input
+```
+I still am not seeing a delete button. The console shows this error, maybe that is why?
+Error: Changing the translatesAutoresizingMaskIntoConstraints property of a UICollectionViewCell that is managed by a UICollectionView is not supported, and will result in incorrect self-sizing. 
+```
+
+## Output
+
+The error indicates that there might be an issue with the way constraints are being handled for the delete button within the table view cells. To fix this, we need to ensure that we properly configure the constraints and avoid modifying `translatesAutoresizingMaskIntoConstraints` in a way that interferes with automatic layout.
+
+Here's the revised code for the `AddSharpenerViewController`, ensuring that constraints for the delete button are correctly set up:
+
+### **AddSharpenerViewController.swift**
+Ensure the delete buttons for parameters are correctly displayed and functional:
+
+```swift
+import UIKit
+
+protocol AddSharpenerViewControllerDelegate: AnyObject {
+    func didSaveSharpener(_ sharpener: Sharpener, at index: Int?)
+}
+
+class AddSharpenerViewController: UIViewController {
+    weak var delegate: AddSharpenerViewControllerDelegate?
+
+    var sharpenerToEdit: Sharpener?
+    var sharpenerIndex: Int?
+
+    let dateTextField = UITextField()
+    let typeTextField = UITextField()
+    let parametersTableView = UITableView()
+    var parameters: [String] = []
+    let addParameterButton = UIButton(type: .system)
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = sharpenerToEdit == nil ? "Add Sharpener" : "Edit Sharpener"
+        view.backgroundColor = .white
+        setupFields()
+        setupButtons()
+        setupLayout()
+
+        if let sharpener = sharpenerToEdit {
+            dateTextField.text = sharpener.date
+            typeTextField.text = sharpener.type
+            parameters = sharpener.parameters
+            parametersTableView.reloadData()
+        }
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Purchased Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        typeTextField.placeholder = "Sharpener Type"
+        typeTextField.borderStyle = .roundedRect
+
+        parametersTableView.dataSource = self
+        parametersTableView.delegate = self
+        parametersTableView.register(ParameterCell.self, forCellReuseIdentifier: "ParameterCell")
+        parametersTableView.heightAnchor.constraint(equalToConstant: 200).isActive = true
+
+        addParameterButton.setTitle("Add Parameter", for: .normal)
+        addParameterButton.addTarget(self, action: #selector(addParameter), for: .touchUpInside)
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, typeTextField, parametersTableView, addParameterButton])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func addParameter() {
+        let alert = UIAlertController(title: "Add Parameter", message: nil, preferredStyle: .alert)
+        alert.addTextField { textField in
+            textField.placeholder = "Parameter"
+        }
+        alert.addAction(UIAlertAction(title: "Add", style: .default, handler: { [weak self] _ in
+            guard let parameter = alert.textFields?[0].text, !parameter.isEmpty else {
+                return
+            }
+            self?.parameters.append(parameter)
+            self?.parametersTableView.reloadData()
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let type = typeTextField.text, !type.isEmpty else {
+            return
+        }
+
+        let sharpener = Sharpener(date: date, type: type, parameters: parameters)
+        delegate?.didSaveSharpener(sharpener, at: sharpenerIndex)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+
+extension AddSharpenerViewController: UITableViewDataSource, UITableViewDelegate {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return parameters.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ParameterCell", for: indexPath) as! ParameterCell
+        let parameter = parameters[indexPath.row]
+        cell.configure(with: parameter, deleteAction: { [weak self] in
+            self?.parameters.remove(at: indexPath.row)
+            self?.parametersTableView.reloadData()
+        })
+        return cell
+    }
+}
+```
+
+### **ParameterCell.swift**
+Create a custom table view cell class to handle parameter display and delete button:
+
+```swift
+import UIKit
+
+class ParameterCell: UITableViewCell {
+    private let parameterLabel = UILabel()
+    private let deleteButton = UIButton(type: .system)
+
+    var deleteAction: (() -> Void)?
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setupViews()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func configure(with parameter: String, deleteAction: @escaping () -> Void) {
+        parameterLabel.text = parameter
+        self.deleteAction = deleteAction
+    }
+
+    private func setupViews() {
+        parameterLabel.translatesAutoresizingMaskIntoConstraints = false
+        deleteButton.translatesAutoresizingMaskIntoConstraints = false
+
+        deleteButton.setImage(UIImage(systemName: "trash"), for: .normal)
+        deleteButton.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
+
+        contentView.addSubview(parameterLabel)
+        contentView.addSubview(deleteButton)
+
+        NSLayoutConstraint.activate([
+            parameterLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
+            parameterLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+
+            deleteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
+            deleteButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+        ])
+    }
+
+    @objc private func deleteButtonTapped() {
+        deleteAction?()
+    }
+}
+```
+
+### **AddLogEntryViewController.swift**
+Update to ensure parameter values are saved and repopulated correctly:
+
+```swift
+import UIKit
+
+protocol AddLogEntryViewControllerDelegate: AnyObject {
+    func didSaveLogEntry(_ logEntry: LogEntry, at index: Int?)
+}
+
+class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate {
+    weak var delegate: AddLogEntryViewControllerDelegate?
+
+    var logEntryToEdit: LogEntry?
+    var logEntryIndex: Int?
+
+    let dateTextField = UITextField()
+    let knifeTextField = UITextField()
+    let sharpenerTextField = UITextField()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+    let knifePicker = UIPickerView()
+    let sharpenerPicker = UIPickerView()
+
+    var knives: [Knife] = []
+    var sharpeners: [Sharpener] = []
+    var selectedKnife: Knife?
+    var selectedSharpener: Sharpener?
+    var parameterFields: [UITextField] = []
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = logEntryToEdit == nil ? "Add Log Entry" : "Edit Log Entry"
+        view.backgroundColor = .white
+
+        // Load knives
+
+ and sharpeners
+        knives = DataStorage.shared.loadKnives()
+        sharpeners = DataStorage.shared.loadSharpeners()
+
+        setupFields()
+        setupButtons()
+        setupLayout()
+
+        if let logEntry = logEntryToEdit {
+            dateTextField.text = logEntry.date
+            knifeTextField.text = logEntry.knife
+            sharpenerTextField.text = logEntry.sharpener
+            selectedKnife = knives.first { $0.name == logEntry.knife }
+            selectedSharpener = sharpeners.first { $0.type == logEntry.sharpener }
+            if let selectedSharpener = selectedSharpener {
+                createParameterFields(for: selectedSharpener, with: logEntry.parameters)
+            }
+        }
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        knifeTextField.placeholder = "Knife"
+        knifeTextField.borderStyle = .roundedRect
+        knifeTextField.inputView = knifePicker
+        knifePicker.dataSource = self
+        knifePicker.delegate = self
+
+        sharpenerTextField.placeholder = "Sharpener"
+        sharpenerTextField.borderStyle = .roundedRect
+        sharpenerTextField.inputView = sharpenerPicker
+        sharpenerPicker.dataSource = self
+        sharpenerPicker.delegate = self
+
+        // Add a toolbar with a Done button to dismiss the pickers
+        let pickerToolbar = UIToolbar()
+        pickerToolbar.sizeToFit()
+        let pickerDoneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(pickerDoneButtonTapped))
+        pickerToolbar.setItems([pickerDoneButton], animated: true)
+        knifeTextField.inputAccessoryView = pickerToolbar
+        sharpenerTextField.inputAccessoryView = pickerToolbar
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, knifeTextField, sharpenerTextField])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func pickerDoneButtonTapped() {
+        if knifeTextField.isFirstResponder {
+            let selectedRow = knifePicker.selectedRow(inComponent: 0)
+            selectedKnife = knives[selectedRow]
+            knifeTextField.text = selectedKnife?.name
+            knifeTextField.resignFirstResponder()
+        } else if sharpenerTextField.isFirstResponder {
+            let selectedRow = sharpenerPicker.selectedRow(inComponent: 0)
+            selectedSharpener = sharpeners[selectedRow]
+            sharpenerTextField.text = selectedSharpener?.type
+            createParameterFields(for: selectedSharpener!)
+            sharpenerTextField.resignFirstResponder()
+        }
+    }
+
+    func createParameterFields(for sharpener: Sharpener, with values: [String] = []) {
+        parameterFields.forEach { $0.removeFromSuperview() }
+        parameterFields = sharpener.parameters.enumerated().map { (index, parameter) in
+            let textField = UITextField()
+            textField.placeholder = parameter
+            textField.borderStyle = .roundedRect
+            if values.count > index {
+                textField.text = values[index]
+            }
+            return textField
+        }
+        let stackView = view.subviews.compactMap { $0 as? UIStackView }.first!
+        parameterFields.forEach { stackView.addArrangedSubview($0) }
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let knife = selectedKnife,
+              let sharpener = selectedSharpener else {
+            return
+        }
+
+        let parameters = parameterFields.map { $0.text ?? "" }
+        let logEntry = LogEntry(date: date, knife: knife.name, sharpener: sharpener.type, parameters: parameters)
+        delegate?.didSaveLogEntry(logEntry, at: logEntryIndex)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+
+    // MARK: - UIPickerViewDataSource
+
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        if pickerView == knifePicker {
+            return knives.count
+        } else if pickerView == sharpenerPicker {
+            return sharpeners.count
+        }
+        return 0
+    }
+
+    // MARK: - UIPickerViewDelegate
+
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        if pickerView == knifePicker {
+            return knives[row].name
+        } else if pickerView == sharpenerPicker {
+            return sharpeners[row].type
+        }
+        return nil
+    }
+}
+```
+
+These changes should address the issue with the delete buttons not appearing and ensure that the parameters for log entries are saved and repopulated correctly when editing. The `ParameterCell` class is created to manage the layout and functionality of each parameter row, including the delete button.

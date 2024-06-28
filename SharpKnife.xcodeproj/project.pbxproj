@@ -30,6 +30,8 @@
 		B3A54F312C2E67DC0050722E /* ParameterCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54F302C2E67DC0050722E /* ParameterCell.swift */; };
 		B3A54F332C2E6FA40050722E /* KnifeLogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54F322C2E6FA40050722E /* KnifeLogViewController.swift */; };
 		B3A54F352C2E71F50050722E /* LogEntryDetailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54F342C2E71F50050722E /* LogEntryDetailCell.swift */; };
+		B3A54F372C2F211B0050722E /* DataStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54F362C2F211B0050722E /* DataStorageTests.swift */; };
+		B3A54F3A2C2F230F0050722E /* UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A54F382C2F21510050722E /* UITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -78,6 +80,8 @@
 		B3A54F302C2E67DC0050722E /* ParameterCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ParameterCell.swift; path = SharpKnife/ViewControllers/ParameterCell.swift; sourceTree = SOURCE_ROOT; };
 		B3A54F322C2E6FA40050722E /* KnifeLogViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnifeLogViewController.swift; sourceTree = "<group>"; };
 		B3A54F342C2E71F50050722E /* LogEntryDetailCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LogEntryDetailCell.swift; path = SharpKnife/ViewControllers/LogEntryDetailCell.swift; sourceTree = SOURCE_ROOT; };
+		B3A54F362C2F211B0050722E /* DataStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStorageTests.swift; sourceTree = "<group>"; };
+		B3A54F382C2F21510050722E /* UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -154,6 +158,7 @@
 			isa = PBXGroup;
 			children = (
 				B369E3BB2C2CA79E001BC399 /* SharpKnifeTests.swift */,
+				B3A54F362C2F211B0050722E /* DataStorageTests.swift */,
 			);
 			path = SharpKnifeTests;
 			sourceTree = "<group>";
@@ -161,6 +166,7 @@
 		B369E3C42C2CA79E001BC399 /* SharpKnifeUITests */ = {
 			isa = PBXGroup;
 			children = (
+				B3A54F382C2F21510050722E /* UITests.swift */,
 				B369E3C52C2CA79E001BC399 /* SharpKnifeUITests.swift */,
 				B369E3C72C2CA79E001BC399 /* SharpKnifeUITestsLaunchTests.swift */,
 			);
@@ -367,6 +373,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B369E3BC2C2CA79E001BC399 /* SharpKnifeTests.swift in Sources */,
+				B3A54F372C2F211B0050722E /* DataStorageTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -375,6 +382,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B369E3C62C2CA79E001BC399 /* SharpKnifeUITests.swift in Sources */,
+				B3A54F3A2C2F230F0050722E /* UITests.swift in Sources */,
 				B369E3C82C2CA79E001BC399 /* SharpKnifeUITestsLaunchTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

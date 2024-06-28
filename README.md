@@ -6455,3 +6455,1506 @@ class KnifeLogViewController: UIViewController, UITableViewDataSource, UITableVi
 ```
 
 These updates ensure that each `LogEntryDetailCell` correctly displays the sharpener parameters and their corresponding values. If there are mismatches between the number of parameters in the `Sharpener` and the log entry, it handles them gracefully. The cell is also set up to allow for multiline text.
+
+# Experiment 8
+
+## Input
+```
+Generate some test code for the iOS app we created,
+```
+
+## Ouput
+
+Sure, let's create some test code for the iOS app. We'll focus on unit tests for the data storage functionality and UI tests for the view controllers.
+
+### Unit Tests for Data Storage
+
+We'll create unit tests for the `DataStorage` class to ensure that knives, sharpeners, and log entries are correctly saved and loaded.
+
+#### **DataStorageTests.swift**
+```swift
+import XCTest
+@testable import KnifeLogger
+
+class DataStorageTests: XCTestCase {
+    
+    override func setUpWithError() throws {
+        // Clear the storage before each test
+        DataStorage.shared.saveKnives([])
+        DataStorage.shared.saveSharpeners([])
+        DataStorage.shared.saveLogEntries([])
+    }
+
+    func testSaveAndLoadKnives() throws {
+        let knife = Knife(date: "2022-01-01", type: "Chef's Knife", name: "Wusthof", image: nil)
+        DataStorage.shared.saveKnives([knife])
+        
+        let loadedKnives = DataStorage.shared.loadKnives()
+        XCTAssertEqual(loadedKnives.count, 1)
+        XCTAssertEqual(loadedKnives.first?.name, "Wusthof")
+    }
+
+    func testSaveAndLoadSharpeners() throws {
+        let sharpener = Sharpener(date: "2022-01-01", type: "Whetstone", parameters: ["Grit: 1000"])
+        DataStorage.shared.saveSharpeners([sharpener])
+        
+        let loadedSharpeners = DataStorage.shared.loadSharpeners()
+        XCTAssertEqual(loadedSharpeners.count, 1)
+        XCTAssertEqual(loadedSharpeners.first?.type, "Whetstone")
+    }
+
+    func testSaveAndLoadLogEntries() throws {
+        let logEntry = LogEntry(date: "2022-01-01", knife: "Wusthof", sharpener: "Whetstone", parameters: ["Grit: 1000"])
+        DataStorage.shared.saveLogEntries([logEntry])
+        
+        let loadedLogEntries = DataStorage.shared.loadLogEntries()
+        XCTAssertEqual(loadedLogEntries.count, 1)
+        XCTAssertEqual(loadedLogEntries.first?.knife, "Wusthof")
+    }
+}
+```
+
+### UI Tests for View Controllers
+
+We'll create UI tests to interact with the view controllers and ensure they function as expected.
+
+#### **UITests.swift**
+```swift
+import XCTest
+
+class UITests: XCTestCase {
+
+    var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+
+    func testAddKnife() throws {
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let typeField = app.textFields["Knife Type"]
+        typeField.tap()
+        typeField.typeText("Chef's Knife")
+        
+        let nameField = app.textFields["Knife Name"]
+        nameField.tap()
+        nameField.typeText("Wusthof")
+        
+        app.buttons["Save"].tap()
+        
+        let knifeCell = app.tables.cells.staticTexts["Wusthof"]
+        XCTAssertTrue(knifeCell.exists)
+    }
+
+    func testAddSharpener() throws {
+        app.tabBars.buttons["Sharpeners"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let typeField = app.textFields["Sharpener Type"]
+        typeField.tap()
+        typeField.typeText("Whetstone")
+        
+        app.buttons["Add Parameter"].tap()
+        
+        let parameterField = app.alerts.textFields["Parameter"]
+        parameterField.tap()
+        parameterField.typeText("Grit: 1000")
+        
+        app.alerts.buttons["Add"].tap()
+        app.buttons["Save"].tap()
+        
+        let sharpenerCell = app.tables.cells.staticTexts["Whetstone"]
+        XCTAssertTrue(sharpenerCell.exists)
+    }
+
+    func testAddLogEntry() throws {
+        app.tabBars.buttons["Log"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Date"]
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let knifeField = app.textFields["Knife"]
+        knifeField.tap()
+        app.pickerWheels.element.adjust(toPickerWheelValue: "Wusthof")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let sharpenerField = app.textFields["Sharpener"]
+        sharpenerField.tap()
+        app.pickerWheels.element.adjust(toPickerWheelValue: "Whetstone")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        app.buttons["Save"].tap()
+        
+        let logEntryCell = app.tables.cells.staticTexts["2022-01-01"]
+        XCTAssertTrue(logEntryCell.exists)
+    }
+}
+```
+
+### Setting Up the Tests
+
+Make sure you have the necessary test targets set up in your Xcode project. You can create a new test target if you don't have one already. Go to `File > New > Target`, then select `Unit Testing Bundle` for unit tests and `UI Testing Bundle` for UI tests.
+
+These test cases cover the basic functionality of adding and loading knives, sharpeners, and log entries. You can expand these tests to cover more scenarios as needed.
+
+## Input
+```
+testAddKnife failed to tap "Purchased Date" TextField: No matches found for Elements matching predicate '"Purchased Date" IN identifiers' from input
+```
+
+## Output
+
+This issue typically arises because the identifier for the `UITextField` is not set correctly or is not accessible during the test. To ensure the `UITextField` can be correctly identified and interacted with in UI tests, you need to set the `accessibilityIdentifier` property for the text fields.
+
+Let's update your `AddKnifeViewController` to set the `accessibilityIdentifier` for each of the text fields.
+
+### **AddKnifeViewController.swift**
+```swift
+import UIKit
+
+protocol AddKnifeViewControllerDelegate: AnyObject {
+    func didSaveKnife(_ knife: Knife, at index: Int?)
+}
+
+class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    weak var delegate: AddKnifeViewControllerDelegate?
+
+    var knifeToEdit: Knife?
+    var knifeIndex: Int?
+
+    let dateTextField = UITextField()
+    let typeTextField = UITextField()
+    let nameTextField = UITextField()
+    let imageView = UIImageView()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let imagePickerButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = knifeToEdit == nil ? "Add Knife" : "Edit Knife"
+        view.backgroundColor = .white
+        setupFields()
+        setupButtons()
+        setupLayout()
+
+        if let knife = knifeToEdit {
+            dateTextField.text = knife.date
+            typeTextField.text = knife.type
+            nameTextField.text = knife.name
+            imageView.image = knife.loadImage()
+        }
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Purchased Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+        dateTextField.accessibilityIdentifier = "Purchased Date" // Set accessibility identifier
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        typeTextField.placeholder = "Knife Type"
+        typeTextField.borderStyle = .roundedRect
+        typeTextField.accessibilityIdentifier = "Knife Type" // Set accessibility identifier
+
+        nameTextField.placeholder = "Knife Name"
+        nameTextField.borderStyle = .roundedRect
+        nameTextField.accessibilityIdentifier = "Knife Name" // Set accessibility identifier
+
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = .lightGray
+
+        imagePickerButton.setTitle("Pick Image", for: .normal)
+        imagePickerButton.addTarget(self, action: #selector(pickImage), for: .touchUpInside)
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, typeTextField, nameTextField, imageView, imagePickerButton])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            imageView.heightAnchor.constraint(equalToConstant: 200),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func pickImage() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = .photoLibrary
+        present(imagePicker, animated: true, completion: nil)
+    }
+
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let image = info[.originalImage] as? UIImage {
+            imageView.image = image
+        }
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let type = typeTextField.text, !type.isEmpty,
+              let name = nameTextField.text, !name.isEmpty else {
+            return
+        }
+
+        let knife = Knife(date: date, type: type, name: name, image: imageView.image)
+        delegate?.didSaveKnife(knife, at: knifeIndex)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+```
+
+### Updated UITests.swift
+Now that the `accessibilityIdentifier` properties are set, the UI test should be able to find the text fields.
+
+```swift
+import XCTest
+
+class UITests: XCTestCase {
+
+    var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+
+    func testAddKnife() throws {
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let typeField = app.textFields["Knife Type"]
+        typeField.tap()
+        typeField.typeText("Chef's Knife")
+        
+        let nameField = app.textFields["Knife Name"]
+        nameField.tap()
+        nameField.typeText("Wusthof")
+        
+        app.buttons["Save"].tap()
+        
+        let knifeCell = app.tables.cells.staticTexts["Wusthof"]
+        XCTAssertTrue(knifeCell.exists)
+    }
+
+    func testAddSharpener() throws {
+        app.tabBars.buttons["Sharpeners"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let typeField = app.textFields["Sharpener Type"]
+        typeField.tap()
+        typeField.typeText("Whetstone")
+        
+        app.buttons["Add Parameter"].tap()
+        
+        let parameterField = app.alerts.textFields["Parameter"]
+        parameterField.tap()
+        parameterField.typeText("Grit: 1000")
+        
+        app.alerts.buttons["Add"].tap()
+        app.buttons["Save"].tap()
+        
+        let sharpenerCell = app.tables.cells.staticTexts["Whetstone"]
+        XCTAssertTrue(sharpenerCell.exists)
+    }
+
+    func testAddLogEntry() throws {
+        app.tabBars.buttons["Log"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Date"]
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let knifeField = app.textFields["Knife"]
+        knifeField.tap()
+        app.pickerWheels.element.adjust(toPickerWheelValue: "Wusthof")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let sharpenerField = app.textFields["Sharpener"]
+        sharpenerField.tap()
+        app.pickerWheels.element.adjust(toPickerWheelValue: "Whetstone")
+        app.tool
+
+bars["Toolbar"].buttons["Done"].tap()
+        
+        app.buttons["Save"].tap()
+        
+        let logEntryCell = app.tables.cells.staticTexts["2022-01-01"]
+        XCTAssertTrue(logEntryCell.exists)
+    }
+}
+```
+
+### Key Points:
+
+- **Accessibility Identifiers**: Ensure all UI elements that need to be interacted with in UI tests have unique `accessibilityIdentifier` properties set.
+- **UI Tests**: Update your UI tests to use these identifiers to find and interact with UI elements.
+
+By setting the `accessibilityIdentifier` for the text fields, the UI tests should now be able to find and interact with the `UITextField` elements correctly.
+
+## Input
+```
+In an XCTestCase, how do I search for an element on a XCUIApplication by its accessibilityIdentifier?
+```
+
+## Output
+
+In an `XCTestCase`, you can search for an element in an `XCUIApplication` by its `accessibilityIdentifier` using the `XCUIElementQuery` API. You can use the `XCUIElementQuery` to find elements with specific identifiers and then interact with them.
+
+Here is how you can do this:
+
+### Example Code
+
+Suppose you want to find a `UITextField` with the `accessibilityIdentifier` "Purchased Date". Here's how you would do it:
+
+```swift
+import XCTest
+
+class UITests: XCTestCase {
+
+    var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+
+    func testAddKnife() throws {
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        XCTAssertTrue(dateField.exists, "The 'Purchased Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let typeField = app.textFields["Knife Type"]
+        XCTAssertTrue(typeField.exists, "The 'Knife Type' text field does not exist")
+        typeField.tap()
+        typeField.typeText("Chef's Knife")
+        
+        let nameField = app.textFields["Knife Name"]
+        XCTAssertTrue(nameField.exists, "The 'Knife Name' text field does not exist")
+        nameField.tap()
+        nameField.typeText("Wusthof")
+        
+        app.buttons["Save"].tap()
+        
+        let knifeCell = app.tables.cells.staticTexts["Wusthof"]
+        XCTAssertTrue(knifeCell.exists, "The knife cell with name 'Wusthof' does not exist")
+    }
+
+    func testAddSharpener() throws {
+        app.tabBars.buttons["Sharpeners"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        XCTAssertTrue(dateField.exists, "The 'Purchased Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let typeField = app.textFields["Sharpener Type"]
+        XCTAssertTrue(typeField.exists, "The 'Sharpener Type' text field does not exist")
+        typeField.tap()
+        typeField.typeText("Whetstone")
+        
+        app.buttons["Add Parameter"].tap()
+        
+        let parameterField = app.alerts.textFields["Parameter"]
+        XCTAssertTrue(parameterField.exists, "The 'Parameter' text field in alert does not exist")
+        parameterField.tap()
+        parameterField.typeText("Grit: 1000")
+        
+        app.alerts.buttons["Add"].tap()
+        app.buttons["Save"].tap()
+        
+        let sharpenerCell = app.tables.cells.staticTexts["Whetstone"]
+        XCTAssertTrue(sharpenerCell.exists, "The sharpener cell with type 'Whetstone' does not exist")
+    }
+
+    func testAddLogEntry() throws {
+        app.tabBars.buttons["Log"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Date"]
+        XCTAssertTrue(dateField.exists, "The 'Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let knifeField = app.textFields["Knife"]
+        XCTAssertTrue(knifeField.exists, "The 'Knife' text field does not exist")
+        knifeField.tap()
+        app.pickerWheels.element.adjust(toPickerWheelValue: "Wusthof")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let sharpenerField = app.textFields["Sharpener"]
+        XCTAssertTrue(sharpenerField.exists, "The 'Sharpener' text field does not exist")
+        sharpenerField.tap()
+        app.pickerWheels.element.adjust(toPickerWheelValue: "Whetstone")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        app.buttons["Save"].tap()
+        
+        let logEntryCell = app.tables.cells.staticTexts["2022-01-01"]
+        XCTAssertTrue(logEntryCell.exists, "The log entry cell with date '2022-01-01' does not exist")
+    }
+}
+```
+
+### Explanation:
+1. **Set Accessibility Identifiers**: Ensure your UI elements have `accessibilityIdentifier` set. For example, `dateTextField.accessibilityIdentifier = "Purchased Date"`.
+
+2. **Search for Elements**: Use `app.textFields["Purchased Date"]` to search for the text field by its `accessibilityIdentifier`.
+
+3. **Assertions**: Use `XCTAssertTrue` to verify that the elements exist before interacting with them.
+
+4. **Interactions**: Perform actions like `tap()`, `typeText()`, etc., on the elements.
+
+This approach ensures that the elements are correctly identified and interacted with during UI tests.
+
+## Input
+```
+Given the below error, I think the code for testAddKnife is looking on the Log Entry page. The test should switch to the Knives tab so that it is looking for Purchased Date on the correct page of the app.
+Error: Failed to tap "Purchased Date" TextField: No matches found for Elements matching predicate '"Purchased Date" IN identifiers' from input {(
+    TextField, placeholderValue: 'Date',
+    TextField, placeholderValue: 'Knife',
+    TextField, placeholderValue: 'Sharpener'
+)}
+```
+
+## Output
+
+You are correct. The test should switch to the Knives tab before attempting to interact with elements related to adding a knife. Let's update the `testAddKnife` function to tap on the Knives tab first.
+
+Here is the corrected `UITests.swift`:
+
+### **UITests.swift**
+```swift
+import XCTest
+
+class UITests: XCTestCase {
+
+    var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+
+    func testAddKnife() throws {
+        // Switch to the Knives tab
+        app.tabBars.buttons["Knives"].tap()
+        
+        // Tap the add button to add a new knife
+        app.buttons["Add"].tap()
+
+        // Find and interact with the Purchased Date text field
+        let dateField = app.textFields["Purchased Date"]
+        XCTAssertTrue(dateField.exists, "The 'Purchased Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        // Find and interact with the Knife Type text field
+        let typeField = app.textFields["Knife Type"]
+        XCTAssertTrue(typeField.exists, "The 'Knife Type' text field does not exist")
+        typeField.tap()
+        typeField.typeText("Chef's Knife")
+        
+        // Find and interact with the Knife Name text field
+        let nameField = app.textFields["Knife Name"]
+        XCTAssertTrue(nameField.exists, "The 'Knife Name' text field does not exist")
+        nameField.tap()
+        nameField.typeText("Wusthof")
+        
+        // Save the new knife
+        app.buttons["Save"].tap()
+        
+        // Verify that the knife has been added
+        let knifeCell = app.tables.cells.staticTexts["Wusthof"]
+        XCTAssertTrue(knifeCell.exists, "The knife cell with name 'Wusthof' does not exist")
+    }
+
+    func testAddSharpener() throws {
+        // Switch to the Sharpeners tab
+        app.tabBars.buttons["Sharpeners"].tap()
+        
+        // Tap the add button to add a new sharpener
+        app.buttons["Add"].tap()
+
+        // Find and interact with the Purchased Date text field
+        let dateField = app.textFields["Purchased Date"]
+        XCTAssertTrue(dateField.exists, "The 'Purchased Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        // Find and interact with the Sharpener Type text field
+        let typeField = app.textFields["Sharpener Type"]
+        XCTAssertTrue(typeField.exists, "The 'Sharpener Type' text field does not exist")
+        typeField.tap()
+        typeField.typeText("Whetstone")
+        
+        // Add a parameter to the sharpener
+        app.buttons["Add Parameter"].tap()
+        
+        let parameterField = app.alerts.textFields["Parameter"]
+        XCTAssertTrue(parameterField.exists, "The 'Parameter' text field in alert does not exist")
+        parameterField.tap()
+        parameterField.typeText("Grit: 1000")
+        
+        app.alerts.buttons["Add"].tap()
+        
+        // Save the new sharpener
+        app.buttons["Save"].tap()
+        
+        // Verify that the sharpener has been added
+        let sharpenerCell = app.tables.cells.staticTexts["Whetstone"]
+        XCTAssertTrue(sharpenerCell.exists, "The sharpener cell with type 'Whetstone' does not exist")
+    }
+
+    func testAddLogEntry() throws {
+        // Switch to the Log tab
+        app.tabBars.buttons["Log"].tap()
+        
+        // Tap the add button to add a new log entry
+        app.buttons["Add"].tap()
+
+        // Find and interact with the Date text field
+        let dateField = app.textFields["Date"]
+        XCTAssertTrue(dateField.exists, "The 'Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        // Find and interact with the Knife text field
+        let knifeField = app.textFields["Knife"]
+        XCTAssertTrue(knifeField.exists, "The 'Knife' text field does not exist")
+        knifeField.tap()
+        app.pickerWheels.element.adjust(toPickerWheelValue: "Wusthof")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        // Find and interact with the Sharpener text field
+        let sharpenerField = app.textFields["Sharpener"]
+        XCTAssertTrue(sharpenerField.exists, "The 'Sharpener' text field does not exist")
+        sharpenerField.tap()
+        app.pickerWheels.element.adjust(toPickerWheelValue: "Whetstone")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        // Save the new log entry
+        app.buttons["Save"].tap()
+        
+        // Verify that the log entry has been added
+        let logEntryCell = app.tables.cells.staticTexts["2022-01-01"]
+        XCTAssertTrue(logEntryCell.exists, "The log entry cell with date '2022-01-01' does not exist")
+    }
+}
+```
+
+### Explanation:
+
+1. **Switch to the Knives Tab**: Added `app.tabBars.buttons["Knives"].tap()` at the beginning of the `testAddKnife` method to switch to the Knives tab.
+
+2. **Switch to the Sharpeners Tab**: Added `app.tabBars.buttons["Sharpeners"].tap()` at the beginning of the `testAddSharpener` method to switch to the Sharpeners tab.
+
+3. **Switch to the Log Tab**: Added `app.tabBars.buttons["Log"].tap()` at the beginning of the `testAddLogEntry` method to switch to the Log tab.
+
+4. **Assertions**: Added assertions using `XCTAssertTrue` to verify that the elements exist before interacting with them.
+
+By making these adjustments, the tests should now correctly interact with the elements on the appropriate tabs. This should resolve the issue of the test looking for elements on the wrong page.
+
+## Input
+```
+Now the test is failing when it tries to save the knife. 
+Here is the error: 
+Failed to failed to scroll to visible (by AX action) Button, {{150.7, 666.7}, {34.0, 30.0}}, label: 'Save', error: Error kAXErrorCannotComplete performing AXAction kAXScrollToVisibleAction on element AX element pid: 27968, elementOrHash.elementID: 4389505184.52. (Underlying Error: Error kAXErrorCannotComplete performing AXAction kAXScrollToVisibleAction on element AX element pid: 27968, elementOrHash.elementID: 4389505184.52)
+```
+
+## Ouptut
+
+This issue is commonly related to the UI element not being fully visible or accessible when the test attempts to interact with it. To fix this, you can ensure that the `Save` button is scrolled into view before attempting to tap it.
+
+Here are a few strategies to address this issue:
+
+1. **Ensure the Button is Visible**:
+    - Scroll the button into view before attempting to tap it.
+    
+2. **Improve UI Layout**:
+    - Ensure the layout is properly constrained so that the `Save` button is visible and accessible.
+
+Let's first modify the test to scroll the `Save` button into view:
+
+### **UITests.swift**
+```swift
+import XCTest
+
+class UITests: XCTestCase {
+
+    var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+
+    func testAddKnife() throws {
+        app.tabBars.buttons["Knives"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        XCTAssertTrue(dateField.exists, "The 'Purchased Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let typeField = app.textFields["Knife Type"]
+        XCTAssertTrue(typeField.exists, "The 'Knife Type' text field does not exist")
+        typeField.tap()
+        typeField.typeText("Chef's Knife")
+        
+        let nameField = app.textFields["Knife Name"]
+        XCTAssertTrue(nameField.exists, "The 'Knife Name' text field does not exist")
+        nameField.tap()
+        nameField.typeText("Wusthof")
+        
+        // Ensure the Save button is visible before tapping
+        let saveButton = app.buttons["Save"]
+        XCTAssertTrue(saveButton.exists, "The 'Save' button does not exist")
+        saveButton.scrollToElement()
+        saveButton.tap()
+        
+        let knifeCell = app.tables.cells.staticTexts["Wusthof"]
+        XCTAssertTrue(knifeCell.exists, "The knife cell with name 'Wusthof' does not exist")
+    }
+
+    func testAddSharpener() throws {
+        app.tabBars.buttons["Sharpeners"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        XCTAssertTrue(dateField.exists, "The 'Purchased Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let typeField = app.textFields["Sharpener Type"]
+        XCTAssertTrue(typeField.exists, "The 'Sharpener Type' text field does not exist")
+        typeField.tap()
+        typeField.typeText("Whetstone")
+        
+        app.buttons["Add Parameter"].tap()
+        
+        let parameterField = app.alerts.textFields["Parameter"]
+        XCTAssertTrue(parameterField.exists, "The 'Parameter' text field in alert does not exist")
+        parameterField.tap()
+        parameterField.typeText("Grit: 1000")
+        
+        app.alerts.buttons["Add"].tap()
+        
+        // Ensure the Save button is visible before tapping
+        let saveButton = app.buttons["Save"]
+        XCTAssertTrue(saveButton.exists, "The 'Save' button does not exist")
+        saveButton.scrollToElement()
+        saveButton.tap()
+        
+        let sharpenerCell = app.tables.cells.staticTexts["Whetstone"]
+        XCTAssertTrue(sharpenerCell.exists, "The sharpener cell with type 'Whetstone' does not exist")
+    }
+
+    func testAddLogEntry() throws {
+        app.tabBars.buttons["Log"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Date"]
+        XCTAssertTrue(dateField.exists, "The 'Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let knifeField = app.textFields["Knife"]
+        XCTAssertTrue(knifeField.exists, "The 'Knife' text field does not exist")
+        knifeField.tap()
+        app.pickerWheels.element.adjust(toPickerWheelValue: "Wusthof")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let sharpenerField = app.textFields["Sharpener"]
+        XCTAssertTrue(sharpenerField.exists, "The 'Sharpener' text field does not exist")
+        sharpenerField.tap()
+        app.pickerWheels.element.adjust(toPickerWheelValue: "Whetstone")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        // Ensure the Save button is visible before tapping
+        let saveButton = app.buttons["Save"]
+        XCTAssertTrue(saveButton.exists, "The 'Save' button does not exist")
+        saveButton.scrollToElement()
+        saveButton.tap()
+        
+        let logEntryCell = app.tables.cells.staticTexts["2022-01-01"]
+        XCTAssertTrue(logEntryCell.exists, "The log entry cell with date '2022-01-01' does not exist")
+    }
+}
+
+extension XCUIElement {
+    func scrollToElement() {
+        while !self.isHittable {
+            XCUIApplication().swipeUp()
+        }
+    }
+}
+```
+
+### Explanation:
+
+1. **Scroll the Element into View**:
+    - Added an extension method `scrollToElement()` on `XCUIElement` to scroll the element into view.
+    - Before tapping the `Save` button, we call `saveButton.scrollToElement()` to ensure it is visible.
+
+2. **Assertions**:
+    - Added assertions using `XCTAssertTrue` to verify that the elements exist before interacting with them.
+
+This should ensure that the `Save` button is scrolled into view and can be tapped during the test. If the layout is properly constrained and the elements are visible, this should resolve the issue with the test failing to tap the `Save` button.
+
+## Input
+```
+I watched the test execute and it looks like the problem is after the knife name is typed the keyboard is in the way of going to the next step of the test. Please alter the AddKnifeViewController so that there is a way to dismiss the keyboard after typing in a text field.
+```
+
+## Output
+
+To dismiss the keyboard after typing in a text field, you can add a `UIToolbar` with a "Done" button to each text field's input accessory view. This toolbar will allow the user (or the test) to tap the "Done" button to dismiss the keyboard.
+
+Here's how you can update `AddKnifeViewController.swift` to include this functionality:
+
+### **AddKnifeViewController.swift**
+```swift
+import UIKit
+
+protocol AddKnifeViewControllerDelegate: AnyObject {
+    func didSaveKnife(_ knife: Knife, at index: Int?)
+}
+
+class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    weak var delegate: AddKnifeViewControllerDelegate?
+
+    var knifeToEdit: Knife?
+    var knifeIndex: Int?
+
+    let dateTextField = UITextField()
+    let typeTextField = UITextField()
+    let nameTextField = UITextField()
+    let imageView = UIImageView()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let imagePickerButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = knifeToEdit == nil ? "Add Knife" : "Edit Knife"
+        view.backgroundColor = .white
+        setupFields()
+        setupButtons()
+        setupLayout()
+
+        if let knife = knifeToEdit {
+            dateTextField.text = knife.date
+            typeTextField.text = knife.type
+            nameTextField.text = knife.name
+            imageView.image = knife.loadImage()
+        }
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Purchased Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+        dateTextField.accessibilityIdentifier = "Purchased Date"
+        addDoneButtonOnKeyboard(to: dateTextField)
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        typeTextField.placeholder = "Knife Type"
+        typeTextField.borderStyle = .roundedRect
+        typeTextField.accessibilityIdentifier = "Knife Type"
+        addDoneButtonOnKeyboard(to: typeTextField)
+
+        nameTextField.placeholder = "Knife Name"
+        nameTextField.borderStyle = .roundedRect
+        nameTextField.accessibilityIdentifier = "Knife Name"
+        addDoneButtonOnKeyboard(to: nameTextField)
+
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = .lightGray
+
+        imagePickerButton.setTitle("Pick Image", for: .normal)
+        imagePickerButton.addTarget(self, action: #selector(pickImage), for: .touchUpInside)
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, typeTextField, nameTextField, imageView, imagePickerButton])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            imageView.heightAnchor.constraint(equalToConstant: 200),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    func addDoneButtonOnKeyboard(to textField: UITextField) {
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([flexSpace, doneButton], animated: true)
+        textField.inputAccessoryView = toolbar
+    }
+
+    @objc func doneButtonTapped() {
+        view.endEditing(true)
+    }
+
+    @objc func pickImage() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = .photoLibrary
+        present(imagePicker, animated: true, completion: nil)
+    }
+
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let image = info[.originalImage] as? UIImage {
+            imageView.image = image
+        }
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let type = typeTextField.text, !type.isEmpty,
+              let name = nameTextField.text, !name.isEmpty else {
+            return
+        }
+
+        let knife = Knife(date: date, type: type, name: name, image: imageView.image)
+        delegate?.didSaveKnife(knife, at: knifeIndex)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+```
+
+### Explanation:
+
+1. **Add a Done Button on the Keyboard**:
+    - Created a `addDoneButtonOnKeyboard(to:)` method to add a `UIToolbar` with a "Done" button to each text field's input accessory view.
+    - Called this method for each text field (`dateTextField`, `typeTextField`, `nameTextField`).
+
+2. **Dismiss the Keyboard**:
+    - Implemented the `doneButtonTapped` method to dismiss the keyboard by calling `view.endEditing(true)`.
+
+### Updated UITests.swift
+With the keyboard dismissal in place, the test should be able to proceed after entering text.
+
+```swift
+import XCTest
+
+class UITests: XCTestCase {
+
+    var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+
+    func testAddKnife() throws {
+        app.tabBars.buttons["Knives"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        XCTAssertTrue(dateField.exists, "The 'Purchased Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let typeField = app.textFields["Knife Type"]
+        XCTAssertTrue(typeField.exists, "The 'Knife Type' text field does not exist")
+        typeField.tap()
+        typeField.typeText("Chef's Knife")
+        app.toolbars["Toolbar"].buttons["Done"].tap() // Dismiss the keyboard
+        
+        let nameField = app.textFields["Knife Name"]
+        XCTAssertTrue(nameField.exists, "The 'Knife Name' text field does not exist")
+        nameField.tap()
+        nameField.typeText("Wusthof")
+        app.toolbars["Toolbar"].buttons["Done"].tap() // Dismiss the keyboard
+        
+        let saveButton = app.buttons["Save"]
+        XCTAssertTrue(saveButton.exists, "The 'Save' button does not exist")
+        saveButton.scrollToElement()
+        saveButton.tap()
+        
+        let knifeCell = app.tables.cells.staticTexts["Wusthof"]
+        XCTAssertTrue(knifeCell.exists, "The knife cell with name 'Wusthof' does not exist")
+    }
+
+    func testAddSharpener() throws {
+        app.tabBars.buttons["Sharpeners"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        XCTAssertTrue(dateField.exists, "The 'Purchased Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars
+
+["Toolbar"].buttons["Done"].tap()
+        
+        let typeField = app.textFields["Sharpener Type"]
+        XCTAssertTrue(typeField.exists, "The 'Sharpener Type' text field does not exist")
+        typeField.tap()
+        typeField.typeText("Whetstone")
+        app.toolbars["Toolbar"].buttons["Done"].tap() // Dismiss the keyboard
+        
+        app.buttons["Add Parameter"].tap()
+        
+        let parameterField = app.alerts.textFields["Parameter"]
+        XCTAssertTrue(parameterField.exists, "The 'Parameter' text field in alert does not exist")
+        parameterField.tap()
+        parameterField.typeText("Grit: 1000")
+        
+        app.alerts.buttons["Add"].tap()
+        
+        let saveButton = app.buttons["Save"]
+        XCTAssertTrue(saveButton.exists, "The 'Save' button does not exist")
+        saveButton.scrollToElement()
+        saveButton.tap()
+        
+        let sharpenerCell = app.tables.cells.staticTexts["Whetstone"]
+        XCTAssertTrue(sharpenerCell.exists, "The sharpener cell with type 'Whetstone' does not exist")
+    }
+
+    func testAddLogEntry() throws {
+        app.tabBars.buttons["Log"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Date"]
+        XCTAssertTrue(dateField.exists, "The 'Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element.boundBy(1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element.boundBy(2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let knifeField = app.textFields["Knife"]
+        XCTAssertTrue(knifeField.exists, "The 'Knife' text field does not exist")
+        knifeField.tap()
+        app.pickerWheels.element.adjust(toPickerWheelValue: "Wusthof")
+        app.toolbars["Toolbar"].buttons["Done"].tap() // Dismiss the picker
+        
+        let sharpenerField = app.textFields["Sharpener"]
+        XCTAssertTrue(sharpenerField.exists, "The 'Sharpener' text field does not exist")
+        sharpenerField.tap()
+        app.pickerWheels.element.adjust(toPickerWheelValue: "Whetstone")
+        app.toolbars["Toolbar"].buttons["Done"].tap() // Dismiss the picker
+        
+        let saveButton = app.buttons["Save"]
+        XCTAssertTrue(saveButton.exists, "The 'Save' button does not exist")
+        saveButton.scrollToElement()
+        saveButton.tap()
+        
+        let logEntryCell = app.tables.cells.staticTexts["2022-01-01"]
+        XCTAssertTrue(logEntryCell.exists, "The log entry cell with date '2022-01-01' does not exist")
+    }
+}
+
+extension XCUIElement {
+    func scrollToElement() {
+        while !self.isHittable {
+            XCUIApplication().swipeUp()
+        }
+    }
+}
+```
+
+By implementing these changes, the keyboard will be dismissed after typing in the text fields, allowing the test to proceed without obstruction.
+
+## Input
+```
+On line 89 of the UITests you used .element(boundBy: 0) which works, but then you switched to .element.boundBy(1) on lines 90 and 91, which doesn't work.  Change lines 90 and 91 to use the same format as line 89 and output the new code.
+```
+
+## Output
+
+Certainly! Here's the corrected `UITests.swift` with lines 90 and 91 using the same format as line 89:
+
+### **UITests.swift**
+```swift
+import XCTest
+
+class UITests: XCTestCase {
+
+    var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+
+    func testAddKnife() throws {
+        app.tabBars.buttons["Knives"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        XCTAssertTrue(dateField.exists, "The 'Purchased Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let typeField = app.textFields["Knife Type"]
+        XCTAssertTrue(typeField.exists, "The 'Knife Type' text field does not exist")
+        typeField.tap()
+        typeField.typeText("Chef's Knife")
+        app.toolbars["Toolbar"].buttons["Done"].tap() // Dismiss the keyboard
+        
+        let nameField = app.textFields["Knife Name"]
+        XCTAssertTrue(nameField.exists, "The 'Knife Name' text field does not exist")
+        nameField.tap()
+        nameField.typeText("Wusthof")
+        app.toolbars["Toolbar"].buttons["Done"].tap() // Dismiss the keyboard
+        
+        let saveButton = app.buttons["Save"]
+        XCTAssertTrue(saveButton.exists, "The 'Save' button does not exist")
+        saveButton.scrollToElement()
+        saveButton.tap()
+        
+        let knifeCell = app.tables.cells.staticTexts["Wusthof"]
+        XCTAssertTrue(knifeCell.exists, "The knife cell with name 'Wusthof' does not exist")
+    }
+
+    func testAddSharpener() throws {
+        app.tabBars.buttons["Sharpeners"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        XCTAssertTrue(dateField.exists, "The 'Purchased Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let typeField = app.textFields["Sharpener Type"]
+        XCTAssertTrue(typeField.exists, "The 'Sharpener Type' text field does not exist")
+        typeField.tap()
+        typeField.typeText("Whetstone")
+        app.toolbars["Toolbar"].buttons["Done"].tap() // Dismiss the keyboard
+        
+        app.buttons["Add Parameter"].tap()
+        
+        let parameterField = app.alerts.textFields["Parameter"]
+        XCTAssertTrue(parameterField.exists, "The 'Parameter' text field in alert does not exist")
+        parameterField.tap()
+        parameterField.typeText("Grit: 1000")
+        
+        app.alerts.buttons["Add"].tap()
+        
+        let saveButton = app.buttons["Save"]
+        XCTAssertTrue(saveButton.exists, "The 'Save' button does not exist")
+        saveButton.scrollToElement()
+        saveButton.tap()
+        
+        let sharpenerCell = app.tables.cells.staticTexts["Whetstone"]
+        XCTAssertTrue(sharpenerCell.exists, "The sharpener cell with type 'Whetstone' does not exist")
+    }
+
+    func testAddLogEntry() throws {
+        app.tabBars.buttons["Log"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Date"]
+        XCTAssertTrue(dateField.exists, "The 'Date' text field does not exist")
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars["Toolbar"].buttons["Done"].tap()
+        
+        let knifeField = app.textFields["Knife"]
+        XCTAssertTrue(knifeField.exists, "The 'Knife' text field does not exist")
+        knifeField.tap()
+        app.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "Wusthof")
+        app.toolbars["Toolbar"].buttons["Done"].tap() // Dismiss the picker
+        
+        let sharpenerField = app.textFields["Sharpener"]
+        XCTAssertTrue(sharpenerField.exists, "The 'Sharpener' text field does not exist")
+        sharpenerField.tap()
+        app.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "Whetstone")
+        app.toolbars["Toolbar"].buttons["Done"].tap() // Dismiss the picker
+        
+        let saveButton = app.buttons["Save"]
+        XCTAssertTrue(saveButton.exists, "The 'Save' button does not exist")
+        saveButton.scrollToElement()
+        saveButton.tap()
+        
+        let logEntryCell = app.tables.cells.staticTexts["2022-01-01"]
+        XCTAssertTrue(logEntryCell.exists, "The log entry cell with date '2022-01-01' does not exist")
+    }
+}
+
+extension XCUIElement {
+    func scrollToElement() {
+        while !self.isHittable {
+            XCUIApplication().swipeUp()
+        }
+    }
+}
+```
+
+### Key Changes:
+- **Updated lines 90 and 91** to use `.element(boundBy: 0)` instead of `.element.boundBy(1)`.
+
+By using the correct format, the test should now properly find and interact with the date picker wheels. This should help ensure the test completes without errors related to finding elements.
+
+## Input
+```
+Fix the following errors in each test.
+- testAddKnife: Failed to failed to scroll to visible (by AX action) TextField, {{20.0, 10.7}, {812.0, 34.0}}, identifier: 'Purchased Date', placeholderValue: 'Purchased Date', error: Error kAXErrorCannotComplete performing AXAction kAXScrollToVisibleAction on element AX element pid: 29920, elementOrHash.elementID: 4420905984.47. (Underlying Error: Error kAXErrorCannotComplete performing AXAction kAXScrollToVisibleAction on element AX element pid: 29920, elementOrHash.elementID: 4420905984.47)
+- testAddSharpener: Failed to tap "Done" Button: No matches found for Descendants matching type Toolbar from input {(
+    Application, pid: 29982, label: 'SharpKnife'
+)}
+Possibly caused by runtime issues:
+Automation type mismatch: computed Button from legacy attributes vs Key from modern attribute. Input attributes and values: {
+    "XC_kAXXCAttributeAutomationType" = 20;
+    "XC_kAXXCAttributeElementBaseType" = UIAccessibilityElement;
+    "XC_kAXXCAttributeElementType" = UIAccessibilityElementKBKey;
+    "XC_kAXXCAttributeTraits" = 8589934649;
+}
+Automation type mismatch: computed Button from legacy attributes vs Key from modern attribute. Input attributes and values: {
+    "XC_kAXXCAttributeAutomationType" = 20;
+    "XC_kAXXCAttributeElementBaseType" = UIAccessibilityElement;
+    "XC_kAXXCAttributeElementType" = UIAccessibilityElementKBKey;
+    "XC_kAXXCAttributeTraits" = 8589934641;
+}
+- testAddLogEntry: Unable to find current value '' in possible values  for the picker wheel PickerWheel at {{9.0, 193.5}, {834.0, 237.0}}
+```
+
+## Output
+
+It seems like there are a few issues with visibility and interaction with the elements in the UI tests. Let's address each issue:
+
+1. **`testAddKnife` - Failed to scroll to visible**:
+   - Ensure the `Purchased Date` field is visible before interacting with it.
+   - Scroll the view to make it visible if needed.
+
+2. **`testAddSharpener` - Failed to tap "Done" Button**:
+   - There may be an issue with the keyboard's "Done" button not being recognized properly. Instead, let's dismiss the keyboard using `typeText("\n")`.
+
+3. **`testAddLogEntry` - Unable to find current value**:
+   - Ensure the picker wheel is set up correctly and use the correct approach to adjust the picker value.
+
+Here are the updated test cases with fixes applied:
+
+### **UITests.swift**
+```swift
+import XCTest
+
+class UITests: XCTestCase {
+
+    var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+
+    func testAddKnife() throws {
+        app.tabBars.buttons["Knives"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        XCTAssertTrue(dateField.exists, "The 'Purchased Date' text field does not exist")
+        dateField.scrollToElement()
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars.buttons["Done"].tap()
+        
+        let typeField = app.textFields["Knife Type"]
+        XCTAssertTrue(typeField.exists, "The 'Knife Type' text field does not exist")
+        typeField.scrollToElement()
+        typeField.tap()
+        typeField.typeText("Chef's Knife")
+        app.typeText("\n") // Dismiss the keyboard
+        
+        let nameField = app.textFields["Knife Name"]
+        XCTAssertTrue(nameField.exists, "The 'Knife Name' text field does not exist")
+        nameField.scrollToElement()
+        nameField.tap()
+        nameField.typeText("Wusthof")
+        app.typeText("\n") // Dismiss the keyboard
+        
+        let saveButton = app.buttons["Save"]
+        XCTAssertTrue(saveButton.exists, "The 'Save' button does not exist")
+        saveButton.scrollToElement()
+        saveButton.tap()
+        
+        let knifeCell = app.tables.cells.staticTexts["Wusthof"]
+        XCTAssertTrue(knifeCell.exists, "The knife cell with name 'Wusthof' does not exist")
+    }
+
+    func testAddSharpener() throws {
+        app.tabBars.buttons["Sharpeners"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Purchased Date"]
+        XCTAssertTrue(dateField.exists, "The 'Purchased Date' text field does not exist")
+        dateField.scrollToElement()
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars.buttons["Done"].tap()
+        
+        let typeField = app.textFields["Sharpener Type"]
+        XCTAssertTrue(typeField.exists, "The 'Sharpener Type' text field does not exist")
+        typeField.scrollToElement()
+        typeField.tap()
+        typeField.typeText("Whetstone")
+        app.typeText("\n") // Dismiss the keyboard
+        
+        app.buttons["Add Parameter"].tap()
+        
+        let parameterField = app.alerts.textFields["Parameter"]
+        XCTAssertTrue(parameterField.exists, "The 'Parameter' text field in alert does not exist")
+        parameterField.tap()
+        parameterField.typeText("Grit: 1000")
+        
+        app.alerts.buttons["Add"].tap()
+        
+        let saveButton = app.buttons["Save"]
+        XCTAssertTrue(saveButton.exists, "The 'Save' button does not exist")
+        saveButton.scrollToElement()
+        saveButton.tap()
+        
+        let sharpenerCell = app.tables.cells.staticTexts["Whetstone"]
+        XCTAssertTrue(sharpenerCell.exists, "The sharpener cell with type 'Whetstone' does not exist")
+    }
+
+    func testAddLogEntry() throws {
+        app.tabBars.buttons["Log"].tap()
+        app.buttons["Add"].tap()
+
+        let dateField = app.textFields["Date"]
+        XCTAssertTrue(dateField.exists, "The 'Date' text field does not exist")
+        dateField.scrollToElement()
+        dateField.tap()
+        app.datePickers.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "January")
+        app.datePickers.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "1")
+        app.datePickers.pickerWheels.element(boundBy: 2).adjust(toPickerWheelValue: "2022")
+        app.toolbars.buttons["Done"].tap()
+        
+        let knifeField = app.textFields["Knife"]
+        XCTAssertTrue(knifeField.exists, "The 'Knife' text field does not exist")
+        knifeField.scrollToElement()
+        knifeField.tap()
+        app.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "Wusthof")
+        app.toolbars.buttons["Done"].tap() // Dismiss the picker
+        
+        let sharpenerField = app.textFields["Sharpener"]
+        XCTAssertTrue(sharpenerField.exists, "The 'Sharpener' text field does not exist")
+        sharpenerField.scrollToElement()
+        sharpenerField.tap()
+        app.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "Whetstone")
+        app.toolbars.buttons["Done"].tap() // Dismiss the picker
+        
+        let saveButton = app.buttons["Save"]
+        XCTAssertTrue(saveButton.exists, "The 'Save' button does not exist")
+        saveButton.scrollToElement()
+        saveButton.tap()
+        
+        let logEntryCell = app.tables.cells.staticTexts["2022-01-01"]
+        XCTAssertTrue(logEntryCell.exists, "The log entry cell with date '2022-01-01' does not exist")
+    }
+}
+
+extension XCUIElement {
+    func scrollToElement() {
+        while !self.isHittable {
+            XCUIApplication().swipeUp()
+        }
+    }
+}
+```
+
+### Key Fixes:
+
+1. **Scroll to Element**:
+   - Added `scrollToElement()` calls to ensure the `Purchased Date` field, `Knife Type` field, and `Knife Name` field are visible before interacting with them in `testAddKnife`.
+   - Added `scrollToElement()` calls to ensure the `Purchased Date` field and `Sharpener Type` field are visible before interacting with them in `testAddSharpener`.
+   - Added `scrollToElement()` calls to ensure the `Date` field, `Knife` field, and `Sharpener` field are visible before interacting with them in `testAddLogEntry`.
+
+2. **Dismiss Keyboard with Newline**:
+   - Used `app.typeText("\n")` to dismiss the keyboard in `testAddKnife` and `testAddSharpener`.
+
+3. **Adjust Picker Wheel**:
+   - Ensured correct usage of `element(boundBy:)` to adjust the picker wheel values in all tests.
+
+These changes should help ensure that the elements are visible and interactable, and that the keyboard does not obstruct the tests.

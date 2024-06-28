@@ -23,6 +23,7 @@ class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPic
     var sharpeners: [Sharpener] = []
     var selectedKnife: Knife?
     var selectedSharpener: Sharpener?
+    var parameterFields: [UITextField] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,6 +44,9 @@ class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPic
             sharpenerTextField.text = logEntry.sharpener
             selectedKnife = knives.first { $0.name == logEntry.knife }
             selectedSharpener = sharpeners.first { $0.type == logEntry.sharpener }
+            if let selectedSharpener = selectedSharpener {
+                createParameterFields(for: selectedSharpener)
+            }
         }
     }
 
@@ -133,8 +137,21 @@ class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPic
             let selectedRow = sharpenerPicker.selectedRow(inComponent: 0)
             selectedSharpener = sharpeners[selectedRow]
             sharpenerTextField.text = selectedSharpener?.type
+            createParameterFields(for: selectedSharpener!)
             sharpenerTextField.resignFirstResponder()
         }
+    }
+
+    func createParameterFields(for sharpener: Sharpener) {
+        parameterFields.forEach { $0.removeFromSuperview() }
+        parameterFields = sharpener.parameters.map { parameter in
+            let textField = UITextField()
+            textField.placeholder = parameter
+            textField.borderStyle = .roundedRect
+            return textField
+        }
+        let stackView = view.subviews.compactMap { $0 as? UIStackView }.first!
+        parameterFields.forEach { stackView.addArrangedSubview($0) }
     }
 
     @objc func save() {
@@ -144,7 +161,8 @@ class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPic
             return
         }
 
-        let logEntry = LogEntry(date: date, knife: knife.name, sharpener: sharpener.type)
+        let parameters = parameterFields.map { $0.text ?? "" }
+        let logEntry = LogEntry(date: date, knife: knife.name, sharpener: sharpener.type, parameters: parameters)
         delegate?.didSaveLogEntry(logEntry, at: logEntryIndex)
         dismiss(animated: true, completion: nil)
     }

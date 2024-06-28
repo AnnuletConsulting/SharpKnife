@@ -13,7 +13,7 @@ class AddSharpenerViewController: UIViewController {
     let dateTextField = UITextField()
     let typeTextField = UITextField()
     let parametersTableView = UITableView()
-    var parameters: [(String, String)] = []
+    var parameters: [String] = []
     let addParameterButton = UIButton(type: .system)
     let saveButton = UIButton(type: .system)
     let cancelButton = UIButton(type: .system)
@@ -106,17 +106,13 @@ class AddSharpenerViewController: UIViewController {
     @objc func addParameter() {
         let alert = UIAlertController(title: "Add Parameter", message: nil, preferredStyle: .alert)
         alert.addTextField { textField in
-            textField.placeholder = "Key"
-        }
-        alert.addTextField { textField in
-            textField.placeholder = "Value"
+            textField.placeholder = "Parameter"
         }
         alert.addAction(UIAlertAction(title: "Add", style: .default, handler: { [weak self] _ in
-            guard let key = alert.textFields?[0].text, !key.isEmpty,
-                  let value = alert.textFields?[1].text, !value.isEmpty else {
+            guard let parameter = alert.textFields?[0].text, !parameter.isEmpty else {
                 return
             }
-            self?.parameters.append((key, value))
+            self?.parameters.append(parameter)
             self?.parametersTableView.reloadData()
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
@@ -147,7 +143,22 @@ extension AddSharpenerViewController: UITableViewDataSource, UITableViewDelegate
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ParameterCell", for: indexPath)
         let parameter = parameters[indexPath.row]
-        cell.textLabel?.text = "\(parameter.0): \(parameter.1)"
+        cell.textLabel?.text = parameter
+        cell.accessoryView = createDeleteButton(for: indexPath.row)
         return cell
+    }
+
+    func createDeleteButton(for index: Int) -> UIButton {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "trash"), for: .normal)
+        button.tag = index
+        button.addTarget(self, action: #selector(deleteParameter), for: .touchUpInside)
+        return button
+    }
+
+    @objc func deleteParameter(sender: UIButton) {
+        let index = sender.tag
+        parameters.remove(at: index)
+        parametersTableView.reloadData()
     }
 }

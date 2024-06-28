@@ -39,6 +39,8 @@ class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate,
         dateTextField.placeholder = "Purchased Date"
         dateTextField.borderStyle = .roundedRect
         dateTextField.inputView = datePicker
+        dateTextField.accessibilityIdentifier = "Purchased Date"
+        addDoneButtonOnKeyboard(to: dateTextField)
 
         // Set up the date picker
         datePicker.datePickerMode = .date
@@ -53,8 +55,13 @@ class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate,
 
         typeTextField.placeholder = "Knife Type"
         typeTextField.borderStyle = .roundedRect
+        typeTextField.accessibilityIdentifier = "Knife Type"
+        addDoneButtonOnKeyboard(to: typeTextField)
+
         nameTextField.placeholder = "Knife Name"
         nameTextField.borderStyle = .roundedRect
+        nameTextField.accessibilityIdentifier = "Knife Name"
+        addDoneButtonOnKeyboard(to: nameTextField)
 
         imageView.contentMode = .scaleAspectFit
         imageView.backgroundColor = .lightGray
@@ -97,12 +104,17 @@ class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate,
         ])
     }
 
+    func addDoneButtonOnKeyboard(to textField: UITextField) {
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([flexSpace, doneButton], animated: true)
+        textField.inputAccessoryView = toolbar
+    }
+
     @objc func doneButtonTapped() {
-        // Format the selected date and display it in the text field
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        dateTextField.text = formatter.string(from: datePicker.date)
-        dateTextField.resignFirstResponder()
+        view.endEditing(true)
     }
 
     @objc func pickImage() {

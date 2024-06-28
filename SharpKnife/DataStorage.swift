@@ -29,6 +29,13 @@ class DataStorage {
         return []
     }
 
+    // Delete a log entry
+    func deleteLogEntry(at index: Int) {
+        var logEntries = loadLogEntries()
+        logEntries.remove(at: index)
+        saveLogEntries(logEntries)
+    }
+
     // Save knives
     func saveKnives(_ knives: [Knife]) {
         let encoder = JSONEncoder()
@@ -42,11 +49,17 @@ class DataStorage {
         if let savedData = UserDefaults.standard.data(forKey: knivesKey) {
             let decoder = JSONDecoder()
             if let loadedKnives = try? decoder.decode([Knife].self, from: savedData) {
-                print("Loaded Knives: \(loadedKnives)")
                 return loadedKnives
             }
         }
         return []
+    }
+
+    // Delete a knife
+    func deleteKnife(at index: Int) {
+        var knives = loadKnives()
+        knives.remove(at: index)
+        saveKnives(knives)
     }
 
     // Save sharpeners
@@ -62,10 +75,16 @@ class DataStorage {
         if let savedData = UserDefaults.standard.data(forKey: sharpenersKey) {
             let decoder = JSONDecoder()
             if let loadedSharpeners = try? decoder.decode([Sharpener].self, from: savedData) {
-                print("Loaded Sharpeners: \(loadedSharpeners)")
                 return loadedSharpeners
             }
         }
         return []
+    }
+
+    // Delete a sharpener
+    func deleteSharpener(at index: Int) {
+        var sharpeners = loadSharpeners()
+        sharpeners.remove(at: index)
+        saveSharpeners(sharpeners)
     }
 }

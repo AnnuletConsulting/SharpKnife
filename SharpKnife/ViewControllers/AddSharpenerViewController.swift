@@ -1,11 +1,14 @@
 import UIKit
 
 protocol AddSharpenerViewControllerDelegate: AnyObject {
-    func didSaveSharpener(_ sharpener: Sharpener)
+    func didSaveSharpener(_ sharpener: Sharpener, at index: Int?)
 }
 
 class AddSharpenerViewController: UIViewController {
     weak var delegate: AddSharpenerViewControllerDelegate?
+
+    var sharpenerToEdit: Sharpener?
+    var sharpenerIndex: Int?
 
     let dateTextField = UITextField()
     let typeTextField = UITextField()
@@ -18,11 +21,18 @@ class AddSharpenerViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "Add Sharpener"
+        self.title = sharpenerToEdit == nil ? "Add Sharpener" : "Edit Sharpener"
         view.backgroundColor = .white
         setupFields()
         setupButtons()
         setupLayout()
+
+        if let sharpener = sharpenerToEdit {
+            dateTextField.text = sharpener.date
+            typeTextField.text = sharpener.type
+            parameters = sharpener.parameters
+            parametersTableView.reloadData()
+        }
     }
 
     func setupFields() {
@@ -120,7 +130,7 @@ class AddSharpenerViewController: UIViewController {
         }
 
         let sharpener = Sharpener(date: date, type: type, parameters: parameters)
-        delegate?.didSaveSharpener(sharpener)
+        delegate?.didSaveSharpener(sharpener, at: sharpenerIndex)
         dismiss(animated: true, completion: nil)
     }
 

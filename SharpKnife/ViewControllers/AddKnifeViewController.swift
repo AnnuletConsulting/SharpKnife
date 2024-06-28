@@ -1,11 +1,14 @@
 import UIKit
 
 protocol AddKnifeViewControllerDelegate: AnyObject {
-    func didSaveKnife(_ knife: Knife)
+    func didSaveKnife(_ knife: Knife, at index: Int?)
 }
 
 class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     weak var delegate: AddKnifeViewControllerDelegate?
+
+    var knifeToEdit: Knife?
+    var knifeIndex: Int?
 
     let dateTextField = UITextField()
     let typeTextField = UITextField()
@@ -18,11 +21,18 @@ class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate,
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "Add Knife"
+        self.title = knifeToEdit == nil ? "Add Knife" : "Edit Knife"
         view.backgroundColor = .white
         setupFields()
         setupButtons()
         setupLayout()
+
+        if let knife = knifeToEdit {
+            dateTextField.text = knife.date
+            typeTextField.text = knife.type
+            nameTextField.text = knife.name
+            imageView.image = knife.loadImage()
+        }
     }
 
     func setupFields() {
@@ -117,7 +127,7 @@ class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate,
         }
 
         let knife = Knife(date: date, type: type, name: name, image: imageView.image)
-        delegate?.didSaveKnife(knife)
+        delegate?.didSaveKnife(knife, at: knifeIndex)
         dismiss(animated: true, completion: nil)
     }
 

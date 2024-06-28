@@ -43,11 +43,49 @@ class KnivesViewController: UIViewController, UITableViewDataSource, UITableView
         cell.configure(with: knife)
         return cell
     }
+
+    // Swipe actions for editing and deleting
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
+            self.confirmDeletion(at: indexPath)
+            completionHandler(true)
+        }
+        let editAction = UIContextualAction(style: .normal, title: "Edit") { (action, view, completionHandler) in
+            self.editKnife(at: indexPath)
+            completionHandler(true)
+        }
+        editAction.backgroundColor = .blue
+        return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
+    }
+
+    func confirmDeletion(at indexPath: IndexPath) {
+        let alert = UIAlertController(title: "Delete Knife", message: "Are you sure you want to delete this knife?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
+            DataStorage.shared.deleteKnife(at: indexPath.row)
+            self.knives.remove(at: indexPath.row)
+            self.tableView.deleteRows(at: [indexPath], with: .automatic)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+
+    func editKnife(at indexPath: IndexPath) {
+        let editKnifeVC = AddKnifeViewController()
+        editKnifeVC.delegate = self
+        editKnifeVC.knifeToEdit = knives[indexPath.row]
+        editKnifeVC.knifeIndex = indexPath.row
+        let navController = UINavigationController(rootViewController: editKnifeVC)
+        present(navController, animated: true, completion: nil)
+    }
 }
 
 extension KnivesViewController: AddKnifeViewControllerDelegate {
-    func didSaveKnife(_ knife: Knife) {
-        knives.append(knife)
+    func didSaveKnife(_ knife: Knife, at index: Int?) {
+        if let index = index {
+            knives[index] = knife
+        } else {
+            knives.append(knife)
+        }
         DataStorage.shared.saveKnives(knives)
         tableView.reloadData()
     }

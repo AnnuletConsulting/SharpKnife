@@ -1,11 +1,14 @@
 import UIKit
 
 protocol AddLogEntryViewControllerDelegate: AnyObject {
-    func didSaveLogEntry(_ logEntry: LogEntry)
+    func didSaveLogEntry(_ logEntry: LogEntry, at index: Int?)
 }
 
 class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate {
     weak var delegate: AddLogEntryViewControllerDelegate?
+
+    var logEntryToEdit: LogEntry?
+    var logEntryIndex: Int?
 
     let dateTextField = UITextField()
     let knifeTextField = UITextField()
@@ -23,20 +26,24 @@ class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPic
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "Add Log Entry"
+        self.title = logEntryToEdit == nil ? "Add Log Entry" : "Edit Log Entry"
         view.backgroundColor = .white
 
         // Load knives and sharpeners
         knives = DataStorage.shared.loadKnives()
         sharpeners = DataStorage.shared.loadSharpeners()
 
-        // Print loaded data for debugging
-        print("Knives: \(knives)")
-        print("Sharpeners: \(sharpeners)")
-
         setupFields()
         setupButtons()
         setupLayout()
+
+        if let logEntry = logEntryToEdit {
+            dateTextField.text = logEntry.date
+            knifeTextField.text = logEntry.knife
+            sharpenerTextField.text = logEntry.sharpener
+            selectedKnife = knives.first { $0.name == logEntry.knife }
+            selectedSharpener = sharpeners.first { $0.type == logEntry.sharpener }
+        }
     }
 
     func setupFields() {
@@ -138,7 +145,7 @@ class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPic
         }
 
         let logEntry = LogEntry(date: date, knife: knife.name, sharpener: sharpener.type)
-        delegate?.didSaveLogEntry(logEntry)
+        delegate?.didSaveLogEntry(logEntry, at: logEntryIndex)
         dismiss(animated: true, completion: nil)
     }
 

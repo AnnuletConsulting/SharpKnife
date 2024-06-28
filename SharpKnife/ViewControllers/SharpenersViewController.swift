@@ -43,11 +43,49 @@ class SharpenersViewController: UIViewController, UITableViewDataSource, UITable
         cell.configure(with: sharpener)
         return cell
     }
+
+    // Swipe actions for editing and deleting
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
+            self.confirmDeletion(at: indexPath)
+            completionHandler(true)
+        }
+        let editAction = UIContextualAction(style: .normal, title: "Edit") { (action, view, completionHandler) in
+            self.editSharpener(at: indexPath)
+            completionHandler(true)
+        }
+        editAction.backgroundColor = .blue
+        return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
+    }
+
+    func confirmDeletion(at indexPath: IndexPath) {
+        let alert = UIAlertController(title: "Delete Sharpener", message: "Are you sure you want to delete this sharpener?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
+            DataStorage.shared.deleteSharpener(at: indexPath.row)
+            self.sharpeners.remove(at: indexPath.row)
+            self.tableView.deleteRows(at: [indexPath], with: .automatic)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+
+    func editSharpener(at indexPath: IndexPath) {
+        let editSharpenerVC = AddSharpenerViewController()
+        editSharpenerVC.delegate = self
+        editSharpenerVC.sharpenerToEdit = sharpeners[indexPath.row]
+        editSharpenerVC.sharpenerIndex = indexPath.row
+        let navController = UINavigationController(rootViewController: editSharpenerVC)
+        present(navController, animated: true, completion: nil)
+    }
 }
 
 extension SharpenersViewController: AddSharpenerViewControllerDelegate {
-    func didSaveSharpener(_ sharpener: Sharpener) {
-        sharpeners.append(sharpener)
+    func didSaveSharpener(_ sharpener: Sharpener, at index: Int?) {
+        if let index = index {
+            sharpeners[index] = sharpener
+        } else {
+            sharpeners.append(sharpener)
+        }
         DataStorage.shared.saveSharpeners(sharpeners)
         tableView.reloadData()
     }

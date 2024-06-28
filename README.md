@@ -2768,3 +2768,1145 @@ class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate,
 2. **AddKnifeViewController**: Update the `save` method to create a `Knife` object with `image: imageView.image`, which will be `nil` if no image is selected.
 
 With these changes, you should be able to save a knife even if no image is selected.
+
+# Experiment 4: Adding Features
+
+##Input
+```
+In the LogViewController, KnivesViewController, and SharpenersViewController, alter the tableView to allow the user to swipe left on a list item to expose a delete button, that when pressed will ask for confirmation to delete the record from the device. 
+Also make those tableViews show an Edit button when swiped right on a list item that when clicked will show an Edit page for the item.  
+Also show the changes required to DataStorage to support these changes.
+```
+
+## Output
+
+To implement swipe actions for deletion and editing in the table views of `LogViewController`, `KnivesViewController`, and `SharpenersViewController`, we need to:
+
+1. Add swipe actions to the table view cells.
+2. Implement deletion logic with confirmation.
+3. Implement navigation to an edit page.
+4. Update the `DataStorage` class to support deletion and saving updated data.
+
+Let's start with the `DataStorage` class.
+
+### **DataStorage.swift**
+Add methods to delete `LogEntry`, `Knife`, and `Sharpener` objects.
+
+```swift
+import Foundation
+import UIKit
+
+class DataStorage {
+    static let shared = DataStorage()
+
+    private let logEntriesKey = "logEntriesKey"
+    private let knivesKey = "knivesKey"
+    private let sharpenersKey = "sharpenersKey"
+
+    private init() {}
+
+    // Save log entries
+    func saveLogEntries(_ logEntries: [LogEntry]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(logEntries) {
+            UserDefaults.standard.set(encoded, forKey: logEntriesKey)
+        }
+    }
+
+    // Load log entries
+    func loadLogEntries() -> [LogEntry] {
+        if let savedData = UserDefaults.standard.data(forKey: logEntriesKey) {
+            let decoder = JSONDecoder()
+            if let loadedLogEntries = try? decoder.decode([LogEntry].self, from: savedData) {
+                return loadedLogEntries
+            }
+        }
+        return []
+    }
+
+    // Delete a log entry
+    func deleteLogEntry(at index: Int) {
+        var logEntries = loadLogEntries()
+        logEntries.remove(at: index)
+        saveLogEntries(logEntries)
+    }
+
+    // Save knives
+    func saveKnives(_ knives: [Knife]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(knives) {
+            UserDefaults.standard.set(encoded, forKey: knivesKey)
+        }
+    }
+
+    // Load knives
+    func loadKnives() -> [Knife] {
+        if let savedData = UserDefaults.standard.data(forKey: knivesKey) {
+            let decoder = JSONDecoder()
+            if let loadedKnives = try? decoder.decode([Knife].self, from: savedData) {
+                return loadedKnives
+            }
+        }
+        return []
+    }
+
+    // Delete a knife
+    func deleteKnife(at index: Int) {
+        var knives = loadKnives()
+        knives.remove(at: index)
+        saveKnives(knives)
+    }
+
+    // Save sharpeners
+    func saveSharpeners(_ sharpeners: [Sharpener]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(sharpeners) {
+            UserDefaults.standard.set(encoded, forKey: sharpenersKey)
+        }
+    }
+
+    // Load sharpeners
+    func loadSharpeners() -> [Sharpener] {
+        if let savedData = UserDefaults.standard.data(forKey: sharpenersKey) {
+            let decoder = JSONDecoder()
+            if let loadedSharpeners = try? decoder.decode([Sharpener].self, from: savedData) {
+                return loadedSharpeners
+            }
+        }
+        return []
+    }
+
+    // Delete a sharpener
+    func deleteSharpener(at index: Int) {
+        var sharpeners = loadSharpeners()
+        sharpeners.remove(at: index)
+        saveSharpeners(sharpeners)
+    }
+}
+```
+
+### **LogViewController.swift**
+Implement swipe actions for editing and deleting log entries.
+
+```swift
+import UIKit
+
+class LogViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var logEntries: [LogEntry] = []
+
+    let tableView = UITableView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Log"
+        view.backgroundColor = .white
+        logEntries = DataStorage.shared.loadLogEntries()
+        setupTableView()
+        setupAddButton()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(LogEntryCell.self, forCellReuseIdentifier: "LogEntryCell")
+        view.addSubview(tableView)
+    }
+
+    func setupAddButton() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addLogEntry))
+    }
+
+    @objc func addLogEntry() {
+        let addLogVC = AddLogEntryViewController()
+        addLogVC.delegate = self
+        let navController = UINavigationController(rootViewController: addLogVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return logEntries.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath) as! LogEntryCell
+        let logEntry = logEntries[indexPath.row]
+        cell.configure(with: logEntry)
+        return cell
+    }
+
+    // Swipe actions for editing and deleting
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
+            self.confirmDeletion(at: indexPath)
+            completionHandler(true)
+        }
+        let editAction = UIContextualAction(style: .normal, title: "Edit") { (action, view, completionHandler) in
+            self.editLogEntry(at: indexPath)
+            completionHandler(true)
+        }
+        editAction.backgroundColor = .blue
+        return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
+    }
+
+    func confirmDeletion(at indexPath: IndexPath) {
+        let alert = UIAlertController(title: "Delete Log Entry", message: "Are you sure you want to delete this log entry?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
+            DataStorage.shared.deleteLogEntry(at: indexPath.row)
+            self.logEntries.remove(at: indexPath.row)
+            self.tableView.deleteRows(at: [indexPath], with: .automatic)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+
+    func editLogEntry(at indexPath: IndexPath) {
+        let editLogVC = AddLogEntryViewController()
+        editLogVC.delegate = self
+        editLogVC.logEntryToEdit = logEntries[indexPath.row]
+        editLogVC.logEntryIndex = indexPath.row
+        let navController = UINavigationController(rootViewController: editLogVC)
+        present(navController, animated: true, completion: nil)
+    }
+}
+
+extension LogViewController: AddLogEntryViewControllerDelegate {
+    func didSaveLogEntry(_ logEntry: LogEntry, at index: Int?) {
+        if let index = index {
+            logEntries[index] = logEntry
+        } else {
+            logEntries.append(logEntry)
+        }
+        DataStorage.shared.saveLogEntries(logEntries)
+        tableView.reloadData()
+    }
+}
+```
+
+### **KnivesViewController.swift**
+Implement swipe actions for editing and deleting knives.
+
+```swift
+import UIKit
+
+class KnivesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var knives: [Knife] = []
+
+    let tableView = UITableView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Knives"
+        view.backgroundColor = .white
+        knives = DataStorage.shared.loadKnives()
+        setupTableView()
+        setupAddButton()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(KnifeCell.self, forCellReuseIdentifier: "KnifeCell")
+        view.addSubview(tableView)
+    }
+
+    func setupAddButton() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addKnife))
+    }
+
+    @objc func addKnife() {
+        let addKnifeVC = AddKnifeViewController()
+        addKnifeVC.delegate = self
+        let navController = UINavigationController(rootViewController: addKnifeVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return knives.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "KnifeCell", for: indexPath) as! KnifeCell
+        let knife = knives[indexPath.row]
+        cell.configure(with: knife)
+        return cell
+    }
+
+    // Swipe actions for editing and deleting
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
+            self.confirmDeletion(at: indexPath)
+            completionHandler(true)
+        }
+        let editAction = UIContext
+
+
+##Input
+```
+The last command froze, please repeat the output.
+```
+
+## Output
+
+Sure, here's the complete implementation for adding swipe actions to delete and edit items in the `LogViewController`, `KnivesViewController`, and `SharpenersViewController`, along with the required changes to `DataStorage` to support these actions:
+
+### **DataStorage.swift**
+Add methods to delete `LogEntry`, `Knife`, and `Sharpener` objects.
+
+```swift
+import Foundation
+import UIKit
+
+class DataStorage {
+    static let shared = DataStorage()
+
+    private let logEntriesKey = "logEntriesKey"
+    private let knivesKey = "knivesKey"
+    private let sharpenersKey = "sharpenersKey"
+
+    private init() {}
+
+    // Save log entries
+    func saveLogEntries(_ logEntries: [LogEntry]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(logEntries) {
+            UserDefaults.standard.set(encoded, forKey: logEntriesKey)
+        }
+    }
+
+    // Load log entries
+    func loadLogEntries() -> [LogEntry] {
+        if let savedData = UserDefaults.standard.data(forKey: logEntriesKey) {
+            let decoder = JSONDecoder()
+            if let loadedLogEntries = try? decoder.decode([LogEntry].self, from: savedData) {
+                return loadedLogEntries
+            }
+        }
+        return []
+    }
+
+    // Delete a log entry
+    func deleteLogEntry(at index: Int) {
+        var logEntries = loadLogEntries()
+        logEntries.remove(at: index)
+        saveLogEntries(logEntries)
+    }
+
+    // Save knives
+    func saveKnives(_ knives: [Knife]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(knives) {
+            UserDefaults.standard.set(encoded, forKey: knivesKey)
+        }
+    }
+
+    // Load knives
+    func loadKnives() -> [Knife] {
+        if let savedData = UserDefaults.standard.data(forKey: knivesKey) {
+            let decoder = JSONDecoder()
+            if let loadedKnives = try? decoder.decode([Knife].self, from: savedData) {
+                return loadedKnives
+            }
+        }
+        return []
+    }
+
+    // Delete a knife
+    func deleteKnife(at index: Int) {
+        var knives = loadKnives()
+        knives.remove(at: index)
+        saveKnives(knives)
+    }
+
+    // Save sharpeners
+    func saveSharpeners(_ sharpeners: [Sharpener]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(sharpeners) {
+            UserDefaults.standard.set(encoded, forKey: sharpenersKey)
+        }
+    }
+
+    // Load sharpeners
+    func loadSharpeners() -> [Sharpener] {
+        if let savedData = UserDefaults.standard.data(forKey: sharpenersKey) {
+            let decoder = JSONDecoder()
+            if let loadedSharpeners = try? decoder.decode([Sharpener].self, from: savedData) {
+                return loadedSharpeners
+            }
+        }
+        return []
+    }
+
+    // Delete a sharpener
+    func deleteSharpener(at index: Int) {
+        var sharpeners = loadSharpeners()
+        sharpeners.remove(at: index)
+        saveSharpeners(sharpeners)
+    }
+}
+```
+
+### **LogViewController.swift**
+Implement swipe actions for editing and deleting log entries.
+
+```swift
+import UIKit
+
+class LogViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var logEntries: [LogEntry] = []
+
+    let tableView = UITableView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Log"
+        view.backgroundColor = .white
+        logEntries = DataStorage.shared.loadLogEntries()
+        setupTableView()
+        setupAddButton()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(LogEntryCell.self, forCellReuseIdentifier: "LogEntryCell")
+        view.addSubview(tableView)
+    }
+
+    func setupAddButton() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addLogEntry))
+    }
+
+    @objc func addLogEntry() {
+        let addLogVC = AddLogEntryViewController()
+        addLogVC.delegate = self
+        let navController = UINavigationController(rootViewController: addLogVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return logEntries.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath) as! LogEntryCell
+        let logEntry = logEntries[indexPath.row]
+        cell.configure(with: logEntry)
+        return cell
+    }
+
+    // Swipe actions for editing and deleting
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
+            self.confirmDeletion(at: indexPath)
+            completionHandler(true)
+        }
+        let editAction = UIContextualAction(style: .normal, title: "Edit") { (action, view, completionHandler) in
+            self.editLogEntry(at: indexPath)
+            completionHandler(true)
+        }
+        editAction.backgroundColor = .blue
+        return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
+    }
+
+    func confirmDeletion(at indexPath: IndexPath) {
+        let alert = UIAlertController(title: "Delete Log Entry", message: "Are you sure you want to delete this log entry?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
+            DataStorage.shared.deleteLogEntry(at: indexPath.row)
+            self.logEntries.remove(at: indexPath.row)
+            self.tableView.deleteRows(at: [indexPath], with: .automatic)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+
+    func editLogEntry(at indexPath: IndexPath) {
+        let editLogVC = AddLogEntryViewController()
+        editLogVC.delegate = self
+        editLogVC.logEntryToEdit = logEntries[indexPath.row]
+        editLogVC.logEntryIndex = indexPath.row
+        let navController = UINavigationController(rootViewController: editLogVC)
+        present(navController, animated: true, completion: nil)
+    }
+}
+
+extension LogViewController: AddLogEntryViewControllerDelegate {
+    func didSaveLogEntry(_ logEntry: LogEntry, at index: Int?) {
+        if let index = index {
+            logEntries[index] = logEntry
+        } else {
+            logEntries.append(logEntry)
+        }
+        DataStorage.shared.saveLogEntries(logEntries)
+        tableView.reloadData()
+    }
+}
+```
+
+### **KnivesViewController.swift**
+Implement swipe actions for editing and deleting knives.
+
+```swift
+import UIKit
+
+class KnivesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var knives: [Knife] = []
+
+    let tableView = UITableView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Knives"
+        view.backgroundColor = .white
+        knives = DataStorage.shared.loadKnives()
+        setupTableView()
+        setupAddButton()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(KnifeCell.self, forCellReuseIdentifier: "KnifeCell")
+        view.addSubview(tableView)
+    }
+
+    func setupAddButton() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addKnife))
+    }
+
+    @objc func addKnife() {
+        let addKnifeVC = AddKnifeViewController()
+        addKnifeVC.delegate = self
+        let navController = UINavigationController(rootViewController: addKnifeVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return knives.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "KnifeCell", for: indexPath) as! KnifeCell
+        let knife = knives[indexPath.row]
+        cell.configure(with: knife)
+        return cell
+    }
+
+    // Swipe actions for editing and deleting
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
+            self.confirmDeletion(at: indexPath)
+            completionHandler(true)
+        }
+        let editAction = UIContextualAction(style: .normal, title: "Edit") { (action, view, completionHandler) in
+            self.editKnife(at: indexPath)
+            completionHandler(true)
+        }
+       
+#### Paid OpenAI $20
+       
+##Input
+```
+Please output the code for SharpenersViewController and all three Add View Controllers
+```
+
+## Output
+Sure, I'll provide the code for `SharpenersViewController`, and the three add view controllers: `AddLogEntryViewController`, `AddKnifeViewController`, and `AddSharpenerViewController`.
+
+### **SharpenersViewController.swift**
+Implement swipe actions for editing and deleting sharpeners.
+
+```swift
+import UIKit
+
+class SharpenersViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var sharpeners: [Sharpener] = []
+
+    let tableView = UITableView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Sharpeners"
+        view.backgroundColor = .white
+        sharpeners = DataStorage.shared.loadSharpeners()
+        setupTableView()
+        setupAddButton()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(SharpenerCell.self, forCellReuseIdentifier: "SharpenerCell")
+        view.addSubview(tableView)
+    }
+
+    func setupAddButton() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addSharpener))
+    }
+
+    @objc func addSharpener() {
+        let addSharpenerVC = AddSharpenerViewController()
+        addSharpenerVC.delegate = self
+        let navController = UINavigationController(rootViewController: addSharpenerVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return sharpeners.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SharpenerCell", for: indexPath) as! SharpenerCell
+        let sharpener = sharpeners[indexPath.row]
+        cell.configure(with: sharpener)
+        return cell
+    }
+
+    // Swipe actions for editing and deleting
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
+            self.confirmDeletion(at: indexPath)
+            completionHandler(true)
+        }
+        let editAction = UIContextualAction(style: .normal, title: "Edit") { (action, view, completionHandler) in
+            self.editSharpener(at: indexPath)
+            completionHandler(true)
+        }
+        editAction.backgroundColor = .blue
+        return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
+    }
+
+    func confirmDeletion(at indexPath: IndexPath) {
+        let alert = UIAlertController(title: "Delete Sharpener", message: "Are you sure you want to delete this sharpener?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
+            DataStorage.shared.deleteSharpener(at: indexPath.row)
+            self.sharpeners.remove(at: indexPath.row)
+            self.tableView.deleteRows(at: [indexPath], with: .automatic)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+
+    func editSharpener(at indexPath: IndexPath) {
+        let editSharpenerVC = AddSharpenerViewController()
+        editSharpenerVC.delegate = self
+        editSharpenerVC.sharpenerToEdit = sharpeners[indexPath.row]
+        editSharpenerVC.sharpenerIndex = indexPath.row
+        let navController = UINavigationController(rootViewController: editSharpenerVC)
+        present(navController, animated: true, completion: nil)
+    }
+}
+
+extension SharpenersViewController: AddSharpenerViewControllerDelegate {
+    func didSaveSharpener(_ sharpener: Sharpener, at index: Int?) {
+        if let index = index {
+            sharpeners[index] = sharpener
+        } else {
+            sharpeners.append(sharpener)
+        }
+        DataStorage.shared.saveSharpeners(sharpeners)
+        tableView.reloadData()
+    }
+}
+```
+
+### **AddLogEntryViewController.swift**
+Ensure the log entry can be edited and saved.
+
+```swift
+import UIKit
+
+protocol AddLogEntryViewControllerDelegate: AnyObject {
+    func didSaveLogEntry(_ logEntry: LogEntry, at index: Int?)
+}
+
+class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate {
+    weak var delegate: AddLogEntryViewControllerDelegate?
+
+    var logEntryToEdit: LogEntry?
+    var logEntryIndex: Int?
+
+    let dateTextField = UITextField()
+    let knifeTextField = UITextField()
+    let sharpenerTextField = UITextField()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+    let knifePicker = UIPickerView()
+    let sharpenerPicker = UIPickerView()
+
+    var knives: [Knife] = []
+    var sharpeners: [Sharpener] = []
+    var selectedKnife: Knife?
+    var selectedSharpener: Sharpener?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = logEntryToEdit == nil ? "Add Log Entry" : "Edit Log Entry"
+        view.backgroundColor = .white
+
+        // Load knives and sharpeners
+        knives = DataStorage.shared.loadKnives()
+        sharpeners = DataStorage.shared.loadSharpeners()
+
+        setupFields()
+        setupButtons()
+        setupLayout()
+
+        if let logEntry = logEntryToEdit {
+            dateTextField.text = logEntry.date
+            knifeTextField.text = logEntry.knife
+            sharpenerTextField.text = logEntry.sharpener
+            selectedKnife = knives.first { $0.name == logEntry.knife }
+            selectedSharpener = sharpeners.first { $0.type == logEntry.sharpener }
+        }
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        knifeTextField.placeholder = "Knife"
+        knifeTextField.borderStyle = .roundedRect
+        knifeTextField.inputView = knifePicker
+        knifePicker.dataSource = self
+        knifePicker.delegate = self
+
+        sharpenerTextField.placeholder = "Sharpener"
+        sharpenerTextField.borderStyle = .roundedRect
+        sharpenerTextField.inputView = sharpenerPicker
+        sharpenerPicker.dataSource = self
+        sharpenerPicker.delegate = self
+
+        // Add a toolbar with a Done button to dismiss the pickers
+        let pickerToolbar = UIToolbar()
+        pickerToolbar.sizeToFit()
+        let pickerDoneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(pickerDoneButtonTapped))
+        pickerToolbar.setItems([pickerDoneButton], animated: true)
+        knifeTextField.inputAccessoryView = pickerToolbar
+        sharpenerTextField.inputAccessoryView = pickerToolbar
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, knifeTextField, sharpenerTextField])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func pickerDoneButtonTapped() {
+        if knifeTextField.is
+
+FirstResponder {
+            let selectedRow = knifePicker.selectedRow(inComponent: 0)
+            selectedKnife = knives[selectedRow]
+            knifeTextField.text = selectedKnife?.name
+            knifeTextField.resignFirstResponder()
+        } else if sharpenerTextField.isFirstResponder {
+            let selectedRow = sharpenerPicker.selectedRow(inComponent: 0)
+            selectedSharpener = sharpeners[selectedRow]
+            sharpenerTextField.text = selectedSharpener?.type
+            sharpenerTextField.resignFirstResponder()
+        }
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let knife = selectedKnife,
+              let sharpener = selectedSharpener else {
+            return
+        }
+
+        let logEntry = LogEntry(date: date, knife: knife.name, sharpener: sharpener.type)
+        delegate?.didSaveLogEntry(logEntry, at: logEntryIndex)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+
+    // MARK: - UIPickerViewDataSource
+
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        if pickerView == knifePicker {
+            return knives.count
+        } else if pickerView == sharpenerPicker {
+            return sharpeners.count
+        }
+        return 0
+    }
+
+    // MARK: - UIPickerViewDelegate
+
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        if pickerView == knifePicker {
+            return knives[row].name
+        } else if pickerView == sharpenerPicker {
+            return sharpeners[row].type
+        }
+        return nil
+    }
+}
+```
+
+### **AddKnifeViewController.swift**
+Ensure the knife can be edited and saved.
+
+```swift
+import UIKit
+
+protocol AddKnifeViewControllerDelegate: AnyObject {
+    func didSaveKnife(_ knife: Knife, at index: Int?)
+}
+
+class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    weak var delegate: AddKnifeViewControllerDelegate?
+
+    var knifeToEdit: Knife?
+    var knifeIndex: Int?
+
+    let dateTextField = UITextField()
+    let typeTextField = UITextField()
+    let nameTextField = UITextField()
+    let imageView = UIImageView()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let imagePickerButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = knifeToEdit == nil ? "Add Knife" : "Edit Knife"
+        view.backgroundColor = .white
+        setupFields()
+        setupButtons()
+        setupLayout()
+
+        if let knife = knifeToEdit {
+            dateTextField.text = knife.date
+            typeTextField.text = knife.type
+            nameTextField.text = knife.name
+            imageView.image = knife.loadImage()
+        }
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Purchased Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        typeTextField.placeholder = "Knife Type"
+        typeTextField.borderStyle = .roundedRect
+        nameTextField.placeholder = "Knife Name"
+        nameTextField.borderStyle = .roundedRect
+
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = .lightGray
+
+        imagePickerButton.setTitle("Pick Image", for: .normal)
+        imagePickerButton.addTarget(self, action: #selector(pickImage), for: .touchUpInside)
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, typeTextField, nameTextField, imageView, imagePickerButton])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            imageView.heightAnchor.constraint(equalToConstant: 200),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func pickImage() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = .photoLibrary
+        present(imagePicker, animated: true, completion: nil)
+    }
+
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let image = info[.originalImage] as? UIImage {
+            imageView.image = image
+        }
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let type = typeTextField.text, !type.isEmpty,
+              let name = nameTextField.text, !name.isEmpty else {
+            return
+        }
+
+        let knife = Knife(date: date, type: type, name: name, image: imageView.image)
+        delegate?.didSaveKnife(knife, at: knifeIndex)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+```
+
+### **AddSharpenerViewController.swift**
+Ensure the sharpener can be edited and saved.
+
+```swift
+import UIKit
+
+protocol AddSharpenerViewControllerDelegate: AnyObject {
+    func didSaveSharpener(_ sharpener: Sharpener, at index: Int?)
+}
+
+class AddSharpenerViewController: UIViewController {
+    weak var delegate: AddSharpenerViewControllerDelegate?
+
+    var sharpenerToEdit: Sharpener?
+    var sharpenerIndex: Int?
+
+    let dateTextField = UITextField()
+    let typeTextField = UITextField()
+    let parametersTableView = UITableView()
+    var parameters: [(String, String)] = []
+    let addParameterButton = UIButton(type: .system)
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = sharpenerToEdit == nil ? "Add Sharpener" : "Edit Sharpener"
+        view.backgroundColor = .white
+        setupFields()
+        setupButtons()
+        setupLayout()
+
+        if let sharpener = sharpenerToEdit {
+            dateTextField.text = sharpener.date
+            typeTextField.text = sharpener.type
+            parameters = sharpener.parameters
+            parametersTableView.reloadData()
+        }
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Purchased Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        typeTextField.placeholder = "Sharpener Type"
+        typeTextField.borderStyle = .roundedRect
+
+        parametersTableView.dataSource = self
+        parametersTableView.delegate = self
+        parametersTableView.register(UITableViewCell.self, forCellReuseIdentifier: "ParameterCell
+
+")
+        parametersTableView.heightAnchor.constraint(equalToConstant: 200).isActive = true
+
+        addParameterButton.setTitle("Add Parameter", for: .normal)
+        addParameterButton.addTarget(self, action: #selector(addParameter), for: .touchUpInside)
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, typeTextField, parametersTableView, addParameterButton])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func addParameter() {
+        let alert = UIAlertController(title: "Add Parameter", message: nil, preferredStyle: .alert)
+        alert.addTextField { textField in
+            textField.placeholder = "Key"
+        }
+        alert.addTextField { textField in
+            textField.placeholder = "Value"
+        }
+        alert.addAction(UIAlertAction(title: "Add", style: .default, handler: { [weak self] _ in
+            guard let key = alert.textFields?[0].text, !key.isEmpty,
+                  let value = alert.textFields?[1].text, !value.isEmpty else {
+                return
+            }
+            self?.parameters.append((key, value))
+            self?.parametersTableView.reloadData()
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let type = typeTextField.text, !type.isEmpty else {
+            return
+        }
+
+        let sharpener = Sharpener(date: date, type: type, parameters: parameters)
+        delegate?.didSaveSharpener(sharpener, at: sharpenerIndex)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+
+extension AddSharpenerViewController: UITableViewDataSource, UITableViewDelegate {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return parameters.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ParameterCell", for: indexPath)
+        let parameter = parameters[indexPath.row]
+        cell.textLabel?.text = "\(parameter.0): \(parameter.1)"
+        return cell
+    }
+}
+```
+
+These changes ensure that you can add, edit, and delete entries for knives, log entries, and sharpeners. Each view controller provides swipe actions for deleting and editing entries, and the data is correctly persisted using `DataStorage`.
+
+

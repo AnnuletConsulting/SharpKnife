@@ -1,6 +1,6 @@
 import UIKit
 
-class KnivesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class KnivesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, KnifeCellDelegate {
     var knives: [Knife] = []
 
     let tableView = UITableView()
@@ -41,6 +41,7 @@ class KnivesViewController: UIViewController, UITableViewDataSource, UITableView
         let cell = tableView.dequeueReusableCell(withIdentifier: "KnifeCell", for: indexPath) as! KnifeCell
         let knife = knives[indexPath.row]
         cell.configure(with: knife)
+        cell.delegate = self
         return cell
     }
 
@@ -55,7 +56,12 @@ class KnivesViewController: UIViewController, UITableViewDataSource, UITableView
             completionHandler(true)
         }
         editAction.backgroundColor = .blue
-        return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
+        let logAction = UIContextualAction(style: .normal, title: "Log") { (action, view, completionHandler) in
+            self.viewLog(for: indexPath)
+            completionHandler(true)
+        }
+        logAction.backgroundColor = .green
+        return UISwipeActionsConfiguration(actions: [deleteAction, editAction, logAction])
     }
 
     func confirmDeletion(at indexPath: IndexPath) {
@@ -76,6 +82,20 @@ class KnivesViewController: UIViewController, UITableViewDataSource, UITableView
         editKnifeVC.knifeIndex = indexPath.row
         let navController = UINavigationController(rootViewController: editKnifeVC)
         present(navController, animated: true, completion: nil)
+    }
+
+    func viewLog(for indexPath: IndexPath) {
+        let knife = knives[indexPath.row]
+        let logVC = KnifeLogViewController()
+        logVC.knife = knife
+        navigationController?.pushViewController(logVC, animated: true)
+    }
+
+    // KnifeCellDelegate method
+    func didTapLogButton(for knife: Knife) {
+        let logVC = KnifeLogViewController()
+        logVC.knife = knife
+        navigationController?.pushViewController(logVC, animated: true)
     }
 }
 

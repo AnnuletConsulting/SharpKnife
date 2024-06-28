@@ -5324,3 +5324,768 @@ class AddLogEntryViewController: UIViewController, UIPickerViewDataSource, UIPic
 ```
 
 These changes should address the issue with the delete buttons not appearing and ensure that the parameters for log entries are saved and repopulated correctly when editing. The `ParameterCell` class is created to manage the layout and functionality of each parameter row, including the delete button.
+
+# Experiment 6
+
+## Input
+```
+On the KnivesViewController, next to the Edit and Delete buttons on each knife, add a Log button. When that button is clicked, it will open a view showing a header at the top with the Type and Name and Purchase Date and Image (if one exists) and below it will show a table of the Log Entries for that knife.
+```
+
+## Output
+
+To add the Log button to each knife in the `KnivesViewController` and display the detailed view with log entries for the selected knife, we need to:
+
+1. Update `KnivesViewController` to include the Log button and handle the button action.
+2. Create a new view controller to display the knife details and associated log entries.
+
+Let's proceed with the implementation:
+
+### **KnivesViewController.swift**
+Update to include the Log button and handle its action:
+
+```swift
+import UIKit
+
+class KnivesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var knives: [Knife] = []
+
+    let tableView = UITableView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Knives"
+        view.backgroundColor = .white
+        knives = DataStorage.shared.loadKnives()
+        setupTableView()
+        setupAddButton()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(KnifeCell.self, forCellReuseIdentifier: "KnifeCell")
+        view.addSubview(tableView)
+    }
+
+    func setupAddButton() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addKnife))
+    }
+
+    @objc func addKnife() {
+        let addKnifeVC = AddKnifeViewController()
+        addKnifeVC.delegate = self
+        let navController = UINavigationController(rootViewController: addKnifeVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return knives.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "KnifeCell", for: indexPath) as! KnifeCell
+        let knife = knives[indexPath.row]
+        cell.configure(with: knife)
+        cell.delegate = self
+        return cell
+    }
+
+    // Swipe actions for editing and deleting
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
+            self.confirmDeletion(at: indexPath)
+            completionHandler(true)
+        }
+        let editAction = UIContextualAction(style: .normal, title: "Edit") { (action, view, completionHandler) in
+            self.editKnife(at: indexPath)
+            completionHandler(true)
+        }
+        editAction.backgroundColor = .blue
+        let logAction = UIContextualAction(style: .normal, title: "Log") { (action, view, completionHandler) in
+            self.viewLog(for: indexPath)
+            completionHandler(true)
+        }
+        logAction.backgroundColor = .green
+        return UISwipeActionsConfiguration(actions: [deleteAction, editAction, logAction])
+    }
+
+    func confirmDeletion(at indexPath: IndexPath) {
+        let alert = UIAlertController(title: "Delete Knife", message: "Are you sure you want to delete this knife?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
+            DataStorage.shared.deleteKnife(at: indexPath.row)
+            self.knives.remove(at: indexPath.row)
+            self.tableView.deleteRows(at: [indexPath], with: .automatic)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+
+    func editKnife(at indexPath: IndexPath) {
+        let editKnifeVC = AddKnifeViewController()
+        editKnifeVC.delegate = self
+        editKnifeVC.knifeToEdit = knives[indexPath.row]
+        editKnifeVC.knifeIndex = indexPath.row
+        let navController = UINavigationController(rootViewController: editKnifeVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func viewLog(for indexPath: IndexPath) {
+        let knife = knives[indexPath.row]
+        let logVC = KnifeLogViewController()
+        logVC.knife = knife
+        navigationController?.pushViewController(logVC, animated: true)
+    }
+}
+
+extension KnivesViewController: AddKnifeViewControllerDelegate {
+    func didSaveKnife(_ knife: Knife, at index: Int?) {
+        if let index = index {
+            knives[index] = knife
+        } else {
+            knives.append(knife)
+        }
+        DataStorage.shared.saveKnives(knives)
+        tableView.reloadData()
+    }
+}
+```
+
+### **KnifeCell.swift**
+Update to include the delegate for handling button actions:
+
+```swift
+import UIKit
+
+protocol KnifeCellDelegate: AnyObject {
+    func didTapLogButton(for knife: Knife)
+}
+
+class KnifeCell: UITableViewCell {
+    weak var delegate: KnifeCellDelegate?
+
+    private var knife: Knife?
+
+    func configure(with knife: Knife) {
+        self.knife = knife
+        textLabel?.text = "\(knife.date) - Type: \(knife.type) - Name: \(knife.name)"
+        imageView?.image = knife.loadImage()
+    }
+}
+```
+
+### **KnifeLogViewController.swift**
+Create a new view controller to display the knife details and associated log entries:
+
+```swift
+import UIKit
+
+class KnifeLogViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var knife: Knife?
+    var logEntries: [LogEntry] = []
+
+    let tableView = UITableView()
+    let knifeImageView = UIImageView()
+    let knifeDetailsLabel = UILabel()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Knife Logs"
+        view.backgroundColor = .white
+
+        if let knife = knife {
+            logEntries = DataStorage.shared.loadLogEntries().filter { $0.knife == knife.name }
+            knifeDetailsLabel.text = "Type: \(knife.type)\nName: \(knife.name)\nPurchased Date: \(knife.date)"
+            knifeImageView.image = knife.loadImage()
+        }
+
+        setupTableView()
+        setupLayout()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(LogEntryCell.self, forCellReuseIdentifier: "LogEntryCell")
+    }
+
+    func setupLayout() {
+        knifeImageView.translatesAutoresizingMaskIntoConstraints = false
+        knifeDetailsLabel.translatesAutoresizingMaskIntoConstraints = false
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+
+        knifeImageView.contentMode = .scaleAspectFit
+        knifeDetailsLabel.numberOfLines = 0
+
+        view.addSubview(knifeImageView)
+        view.addSubview(knifeDetailsLabel)
+        view.addSubview(tableView)
+
+        NSLayoutConstraint.activate([
+            knifeImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            knifeImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            knifeImageView.heightAnchor.constraint(equalToConstant: 200),
+            knifeImageView.widthAnchor.constraint(equalToConstant: 200),
+
+            knifeDetailsLabel.topAnchor.constraint(equalTo: knifeImageView.bottomAnchor, constant: 10),
+            knifeDetailsLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            knifeDetailsLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            tableView.topAnchor.constraint(equalTo: knifeDetailsLabel.bottomAnchor, constant: 10),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return logEntries.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath) as! LogEntryCell
+        let logEntry = logEntries[indexPath.row]
+        cell.configure(with: logEntry)
+        return cell
+    }
+}
+```
+
+### **AddKnifeViewController.swift**
+Ensure it includes the delegate for handling save actions:
+
+```swift
+import UIKit
+
+protocol AddKnifeViewControllerDelegate: AnyObject {
+    func didSaveKnife(_ knife: Knife, at index: Int?)
+}
+
+class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    weak var delegate: AddKnifeViewControllerDelegate?
+
+    var knifeToEdit: Knife?
+    var knifeIndex: Int?
+
+    let dateTextField = UITextField()
+    let typeTextField = UITextField()
+    let nameTextField = UITextField()
+    let imageView = UIImageView()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let imagePickerButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = knifeToEdit == nil ? "Add Knife" : "Edit Knife"
+        view.backgroundColor = .white
+        setupFields()
+        setupButtons()
+        setupLayout()
+
+        if let knife = knifeToEdit {
+            dateTextField.text = knife.date
+            typeTextField.text = knife
+
+.type
+            nameTextField.text = knife.name
+            imageView.image = knife.loadImage()
+        }
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Purchased Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        typeTextField.placeholder = "Knife Type"
+        typeTextField.borderStyle = .roundedRect
+        nameTextField.placeholder = "Knife Name"
+        nameTextField.borderStyle = .roundedRect
+
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = .lightGray
+
+        imagePickerButton.setTitle("Pick Image", for: .normal)
+        imagePickerButton.addTarget(self, action: #selector(pickImage), for: .touchUpInside)
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, typeTextField, nameTextField, imageView, imagePickerButton])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            imageView.heightAnchor.constraint(equalToConstant: 200),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func pickImage() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = .photoLibrary
+        present(imagePicker, animated: true, completion: nil)
+    }
+
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let image = info[.originalImage] as? UIImage {
+            imageView.image = image
+        }
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let type = typeTextField.text, !type.isEmpty,
+              let name = nameTextField.text, !name.isEmpty else {
+            return
+        }
+
+        let knife = Knife(date: date, type: type, name: name, image: imageView.image)
+        delegate?.didSaveKnife(knife, at: knifeIndex)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+```
+
+These changes ensure that the `KnivesViewController` includes a Log button next to each knife entry, and when clicked, it opens a detailed view showing the knife information and its associated log entries.
+
+## Input 
+```
+The build failed with error: Cannot assign value of type 'KnivesViewController' to type '(any KnifeCellDelegate)?'
+```
+
+## Output
+
+The error indicates that `KnivesViewController` does not conform to the `KnifeCellDelegate` protocol. To fix this, you need to make `KnivesViewController` conform to the `KnifeCellDelegate` protocol and implement the required method.
+
+Here's how to update the code to address this issue:
+
+### **KnivesViewController.swift**
+Make `KnivesViewController` conform to `KnifeCellDelegate` and implement the required method:
+
+```swift
+import UIKit
+
+class KnivesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, KnifeCellDelegate {
+    var knives: [Knife] = []
+
+    let tableView = UITableView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Knives"
+        view.backgroundColor = .white
+        knives = DataStorage.shared.loadKnives()
+        setupTableView()
+        setupAddButton()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(KnifeCell.self, forCellReuseIdentifier: "KnifeCell")
+        view.addSubview(tableView)
+    }
+
+    func setupAddButton() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addKnife))
+    }
+
+    @objc func addKnife() {
+        let addKnifeVC = AddKnifeViewController()
+        addKnifeVC.delegate = self
+        let navController = UINavigationController(rootViewController: addKnifeVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return knives.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "KnifeCell", for: indexPath) as! KnifeCell
+        let knife = knives[indexPath.row]
+        cell.configure(with: knife)
+        cell.delegate = self
+        return cell
+    }
+
+    // Swipe actions for editing and deleting
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
+            self.confirmDeletion(at: indexPath)
+            completionHandler(true)
+        }
+        let editAction = UIContextualAction(style: .normal, title: "Edit") { (action, view, completionHandler) in
+            self.editKnife(at: indexPath)
+            completionHandler(true)
+        }
+        editAction.backgroundColor = .blue
+        let logAction = UIContextualAction(style: .normal, title: "Log") { (action, view, completionHandler) in
+            self.viewLog(for: indexPath)
+            completionHandler(true)
+        }
+        logAction.backgroundColor = .green
+        return UISwipeActionsConfiguration(actions: [deleteAction, editAction, logAction])
+    }
+
+    func confirmDeletion(at indexPath: IndexPath) {
+        let alert = UIAlertController(title: "Delete Knife", message: "Are you sure you want to delete this knife?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
+            DataStorage.shared.deleteKnife(at: indexPath.row)
+            self.knives.remove(at: indexPath.row)
+            self.tableView.deleteRows(at: [indexPath], with: .automatic)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+
+    func editKnife(at indexPath: IndexPath) {
+        let editKnifeVC = AddKnifeViewController()
+        editKnifeVC.delegate = self
+        editKnifeVC.knifeToEdit = knives[indexPath.row]
+        editKnifeVC.knifeIndex = indexPath.row
+        let navController = UINavigationController(rootViewController: editKnifeVC)
+        present(navController, animated: true, completion: nil)
+    }
+
+    func viewLog(for indexPath: IndexPath) {
+        let knife = knives[indexPath.row]
+        let logVC = KnifeLogViewController()
+        logVC.knife = knife
+        navigationController?.pushViewController(logVC, animated: true)
+    }
+
+    // KnifeCellDelegate method
+    func didTapLogButton(for knife: Knife) {
+        let logVC = KnifeLogViewController()
+        logVC.knife = knife
+        navigationController?.pushViewController(logVC, animated: true)
+    }
+}
+
+extension KnivesViewController: AddKnifeViewControllerDelegate {
+    func didSaveKnife(_ knife: Knife, at index: Int?) {
+        if let index = index {
+            knives[index] = knife
+        } else {
+            knives.append(knife)
+        }
+        DataStorage.shared.saveKnives(knives)
+        tableView.reloadData()
+    }
+}
+```
+
+### **KnifeCell.swift**
+Update `KnifeCell` to call the delegate method when the Log button is tapped:
+
+```swift
+import UIKit
+
+protocol KnifeCellDelegate: AnyObject {
+    func didTapLogButton(for knife: Knife)
+}
+
+class KnifeCell: UITableViewCell {
+    weak var delegate: KnifeCellDelegate?
+
+    private var knife: Knife?
+
+    func configure(with knife: Knife) {
+        self.knife = knife
+        textLabel?.text = "\(knife.date) - Type: \(knife.type) - Name: \(knife.name)"
+        imageView?.image = knife.loadImage()
+        setupLogButton()
+    }
+
+    private func setupLogButton() {
+        let logButton = UIButton(type: .system)
+        logButton.setTitle("Log", for: .normal)
+        logButton.addTarget(self, action: #selector(logButtonTapped), for: .touchUpInside)
+        accessoryView = logButton
+    }
+
+    @objc private func logButtonTapped() {
+        guard let knife = knife else { return }
+        delegate?.didTapLogButton(for: knife)
+    }
+}
+```
+
+### **KnifeLogViewController.swift**
+Create a new view controller to display the knife details and associated log entries:
+
+```swift
+import UIKit
+
+class KnifeLogViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var knife: Knife?
+    var logEntries: [LogEntry] = []
+
+    let tableView = UITableView()
+    let knifeImageView = UIImageView()
+    let knifeDetailsLabel = UILabel()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Knife Logs"
+        view.backgroundColor = .white
+
+        if let knife = knife {
+            logEntries = DataStorage.shared.loadLogEntries().filter { $0.knife == knife.name }
+            knifeDetailsLabel.text = "Type: \(knife.type)\nName: \(knife.name)\nPurchased Date: \(knife.date)"
+            knifeImageView.image = knife.loadImage()
+        }
+
+        setupTableView()
+        setupLayout()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(LogEntryCell.self, forCellReuseIdentifier: "LogEntryCell")
+    }
+
+    func setupLayout() {
+        knifeImageView.translatesAutoresizingMaskIntoConstraints = false
+        knifeDetailsLabel.translatesAutoresizingMaskIntoConstraints = false
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+
+        knifeImageView.contentMode = .scaleAspectFit
+        knifeDetailsLabel.numberOfLines = 0
+
+        view.addSubview(knifeImageView)
+        view.addSubview(knifeDetailsLabel)
+        view.addSubview(tableView)
+
+        NSLayoutConstraint.activate([
+            knifeImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            knifeImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            knifeImageView.heightAnchor.constraint(equalToConstant: 200),
+            knifeImageView.widthAnchor.constraint(equalToConstant: 200),
+
+            knifeDetailsLabel.topAnchor.constraint(equalTo: knifeImageView.bottomAnchor, constant: 10),
+            knifeDetailsLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            knifeDetailsLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            tableView.topAnchor.constraint(equalTo: knifeDetailsLabel.bottomAnchor, constant: 10),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return logEntries.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "LogEntryCell", for: indexPath) as! LogEntryCell
+        let logEntry = logEntries[indexPath.row]
+        cell.configure(with: logEntry)
+        return cell
+    }
+}
+```
+
+### **AddKnifeViewController.swift**
+Ensure it includes the delegate for handling save actions:
+
+```swift
+import UIKit
+
+protocol AddKnifeViewControllerDelegate: AnyObject {
+    func didSaveKnife(_ knife: Knife, at index: Int?)
+}
+
+class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    weak var delegate: AddKnifeViewControllerDelegate?
+
+    var knifeToEdit: Knife?
+    var knife
+
+Index: Int?
+
+    let dateTextField = UITextField()
+    let typeTextField = UITextField()
+    let nameTextField = UITextField()
+    let imageView = UIImageView()
+    let saveButton = UIButton(type: .system)
+    let cancelButton = UIButton(type: .system)
+    let imagePickerButton = UIButton(type: .system)
+    let datePicker = UIDatePicker()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = knifeToEdit == nil ? "Add Knife" : "Edit Knife"
+        view.backgroundColor = .white
+        setupFields()
+        setupButtons()
+        setupLayout()
+
+        if let knife = knifeToEdit {
+            dateTextField.text = knife.date
+            typeTextField.text = knife.type
+            nameTextField.text = knife.name
+            imageView.image = knife.loadImage()
+        }
+    }
+
+    func setupFields() {
+        dateTextField.placeholder = "Purchased Date"
+        dateTextField.borderStyle = .roundedRect
+        dateTextField.inputView = datePicker
+
+        // Set up the date picker
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .wheels
+
+        // Add a toolbar with a Done button to dismiss the date picker
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+        toolbar.setItems([doneButton], animated: true)
+        dateTextField.inputAccessoryView = toolbar
+
+        typeTextField.placeholder = "Knife Type"
+        typeTextField.borderStyle = .roundedRect
+        nameTextField.placeholder = "Knife Name"
+        nameTextField.borderStyle = .roundedRect
+
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = .lightGray
+
+        imagePickerButton.setTitle("Pick Image", for: .normal)
+        imagePickerButton.addTarget(self, action: #selector(pickImage), for: .touchUpInside)
+    }
+
+    func setupButtons() {
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
+
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+    }
+
+    func setupLayout() {
+        let stackView = UIStackView(arrangedSubviews: [dateTextField, typeTextField, nameTextField, imageView, imagePickerButton])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
+        let buttonStackView = UIStackView(arrangedSubviews: [saveButton, cancelButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonStackView)
+
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            imageView.heightAnchor.constraint(equalToConstant: 200),
+
+            buttonStackView.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc func doneButtonTapped() {
+        // Format the selected date and display it in the text field
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dateTextField.text = formatter.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+    }
+
+    @objc func pickImage() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = .photoLibrary
+        present(imagePicker, animated: true, completion: nil)
+    }
+
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let image = info[.originalImage] as? UIImage {
+            imageView.image = image
+        }
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func save() {
+        guard let date = dateTextField.text, !date.isEmpty,
+              let type = typeTextField.text, !type.isEmpty,
+              let name = nameTextField.text, !name.isEmpty else {
+            return
+        }
+
+        let knife = Knife(date: date, type: type, name: name, image: imageView.image)
+        delegate?.didSaveKnife(knife, at: knifeIndex)
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc func cancel() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+```
+
+These changes ensure that the `KnivesViewController` includes a Log button next to each knife entry, and when clicked, it opens a detailed view showing the knife information and its associated log entries.

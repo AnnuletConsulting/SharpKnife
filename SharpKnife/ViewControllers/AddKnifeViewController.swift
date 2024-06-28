@@ -1,4 +1,4 @@
-import SwiftUI
+import UIKit
 
 protocol AddKnifeViewControllerDelegate: AnyObject {
     func didSaveKnife(_ knife: Knife)
@@ -112,12 +112,11 @@ class AddKnifeViewController: UIViewController, UIImagePickerControllerDelegate,
     @objc func save() {
         guard let date = dateTextField.text, !date.isEmpty,
               let type = typeTextField.text, !type.isEmpty,
-              let name = nameTextField.text, !name.isEmpty,
-              let image = imageView.image else {
+              let name = nameTextField.text, !name.isEmpty else {
             return
         }
 
-        let knife = Knife(date: date, type: type, name: name, image: image)
+        let knife = Knife(date: date, type: type, name: name, image: imageView.image)
         delegate?.didSaveKnife(knife)
         dismiss(animated: true, completion: nil)
     }

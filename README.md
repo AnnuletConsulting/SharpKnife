@@ -6089,3 +6089,365 @@ Index: Int?
 ```
 
 These changes ensure that the `KnivesViewController` includes a Log button next to each knife entry, and when clicked, it opens a detailed view showing the knife information and its associated log entries.
+
+
+# Experiment 7
+
+## Input
+I created a new file in this codebase called LogEntryDetailCell.swift, and it has the following contents:
+```
+import UIKit
+
+class LogEntryDetailCell: UITableViewCell {
+    func configure(with logEntry: LogEntry) {
+        textLabel?.text = "\(logEntry.date) \(logEntry.sharpener) " + logEntry.parameters.joined(separator: ", ")
+    }
+}
+```
+
+I also updated KnifeLogViewController.swift so it now has the contents
+```
+import UIKit
+
+class KnifeLogViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var knife: Knife?
+    var logEntries: [LogEntry] = []
+
+    let tableView = UITableView()
+    let knifeImageView = UIImageView()
+    let knifeDetailsLabel = UILabel()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Knife Logs"
+        view.backgroundColor = .white
+
+        if let knife = knife {
+            logEntries = DataStorage.shared.loadLogEntries().filter { $0.knife == knife.name }
+            knifeDetailsLabel.text = "Type: \(knife.type)\nName: \(knife.name)\nPurchased Date: \(knife.date)"
+            knifeImageView.image = knife.loadImage()
+        }
+
+        setupTableView()
+        setupLayout()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(LogEntryDetailCell.self, forCellReuseIdentifier: "LogEntryDetailCell")
+    }
+
+    func setupLayout() {
+        knifeImageView.translatesAutoresizingMaskIntoConstraints = false
+        knifeDetailsLabel.translatesAutoresizingMaskIntoConstraints = false
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+
+        knifeImageView.contentMode = .scaleAspectFit
+        knifeDetailsLabel.numberOfLines = 0
+
+        view.addSubview(knifeImageView)
+        view.addSubview(knifeDetailsLabel)
+        view.addSubview(tableView)
+
+        NSLayoutConstraint.activate([
+            knifeImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            knifeImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            knifeImageView.heightAnchor.constraint(equalToConstant: 200),
+            knifeImageView.widthAnchor.constraint(equalToConstant: 200),
+
+            knifeDetailsLabel.topAnchor.constraint(equalTo: knifeImageView.bottomAnchor, constant: 10),
+            knifeDetailsLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            knifeDetailsLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            tableView.topAnchor.constraint(equalTo: knifeDetailsLabel.bottomAnchor, constant: 10),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return logEntries.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "LogEntryDetailCell", for: indexPath) as! LogEntryDetailCell
+        let logEntry = logEntries[indexPath.row]
+        cell.configure(with: logEntry)
+        return cell
+    }
+}
+```
+
+Given these updates to the code, Change the LogEntryDetailCell so that it displays multiline text.
+
+## Output
+
+To make the `LogEntryDetailCell` display multiline text, we need to configure the cell's `textLabel` to allow multiple lines. This can be done by setting the `numberOfLines` property of the `textLabel` to 0, which allows for an unlimited number of lines. Additionally, we will need to adjust the cell's layout constraints to accommodate the multiline text properly.
+
+Here's the updated `LogEntryDetailCell.swift` to handle multiline text:
+
+### **LogEntryDetailCell.swift**
+```swift
+import UIKit
+
+class LogEntryDetailCell: UITableViewCell {
+    func configure(with logEntry: LogEntry) {
+        textLabel?.numberOfLines = 0 // Allow multiline
+        textLabel?.text = "\(logEntry.date) \(logEntry.sharpener) " + logEntry.parameters.joined(separator: ", ")
+        setupConstraints()
+    }
+
+    private func setupConstraints() {
+        textLabel?.translatesAutoresizingMaskIntoConstraints = false
+        if let textLabel = textLabel {
+            NSLayoutConstraint.activate([
+                textLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
+                textLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
+                textLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+                textLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10)
+            ])
+        }
+    }
+}
+```
+
+This ensures that the `textLabel` can expand to multiple lines and that the cell layout adjusts accordingly.
+
+### **KnifeLogViewController.swift**
+No changes are needed here since you've already set up the table view and registered the `LogEntryDetailCell`.
+
+This should allow your log entry details to be displayed with multiline text in each table view cell.
+
+## Input
+```
+Now have the LogEntryDetailCell pull in the Sharpener referenced in the LogEntry and match the parameter names to the values stored in the log entry and display them in front of the corresponding value.
+```
+
+## Output
+
+To update `LogEntryDetailCell` to pull in the `Sharpener` referenced in the `LogEntry` and match the parameter names to the values stored in the log entry, we'll need to modify the `configure` method to include logic that fetches the correct `Sharpener` and then formats the display text accordingly.
+
+Here's the updated `LogEntryDetailCell.swift`:
+
+### **LogEntryDetailCell.swift**
+```swift
+import UIKit
+
+class LogEntryDetailCell: UITableViewCell {
+    func configure(with logEntry: LogEntry) {
+        guard let sharpener = DataStorage.shared.loadSharpeners().first(where: { $0.type == logEntry.sharpener }) else {
+            textLabel?.text = "\(logEntry.date) \(logEntry.sharpener) " + logEntry.parameters.joined(separator: ", ")
+            return
+        }
+        
+        var displayText = "\(logEntry.date)\n\(logEntry.sharpener)\n"
+        for (index, parameter) in logEntry.parameters.enumerated() {
+            if index < sharpener.parameters.count {
+                displayText += "\(sharpener.parameters[index]): \(parameter)\n"
+            } else {
+                displayText += "\(parameter)\n"
+            }
+        }
+
+        textLabel?.numberOfLines = 0 // Allow multiline
+        textLabel?.text = displayText.trimmingCharacters(in: .whitespacesAndNewlines)
+        setupConstraints()
+    }
+
+    private func setupConstraints() {
+        textLabel?.translatesAutoresizingMaskIntoConstraints = false
+        if let textLabel = textLabel {
+            NSLayoutConstraint.activate([
+                textLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
+                textLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
+                textLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+                textLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10)
+            ])
+        }
+    }
+}
+```
+
+### Explanation:
+
+1. **Fetching the Sharpener**: The `configure` method now fetches the correct `Sharpener` referenced in the `LogEntry`.
+2. **Formatting Display Text**: The display text is formatted to match the parameter names from the `Sharpener` with the values stored in the `LogEntry`. If there are more values than parameters, it just displays the values.
+3. **Multiline Text**: The `numberOfLines` property is set to 0 to allow multiline text, and constraints are set up to ensure proper layout.
+
+This update ensures that the `LogEntryDetailCell` displays the log entry details with parameter names and values properly matched and formatted.
+
+## Input
+That is very close to what I wanted. I have updated the code for LogEntryDetailCell.swift to be 
+```
+import UIKit
+
+class LogEntryDetailCell: UITableViewCell {
+    func configure(with logEntry: LogEntry) {
+        guard let sharpener = DataStorage.shared.loadSharpeners().first(where: { $0.type == logEntry.sharpener }) else {
+            textLabel?.text = "\(logEntry.date) - Sharpener: \(logEntry.sharpener) " + logEntry.parameters.joined(separator: ", ")
+            return
+        }
+        
+        var displayText = "\(logEntry.date) - Sharpener: \(logEntry.sharpener)\n"
+        for (index, parameter) in logEntry.parameters.enumerated() {
+            var seperator = ", "
+            if (index + 1 == sharpener.parameters.count) {
+                seperator = ""
+            }
+            if index < sharpener.parameters.count {
+                displayText += "\(sharpener.parameters[index]): \(parameter)" + seperator
+            } else {
+                displayText += "\(parameter)" + seperator
+            }
+        }
+
+        textLabel?.numberOfLines = 0 // Allow multiline
+        textLabel?.text = displayText.trimmingCharacters(in: .whitespacesAndNewlines)
+        setupConstraints()
+    }
+
+    private func setupConstraints() {
+        textLabel?.translatesAutoresizingMaskIntoConstraints = false
+        if let textLabel = textLabel {
+            NSLayoutConstraint.activate([
+                textLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
+                textLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
+                textLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+                textLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10)
+            ])
+        }
+    }
+}
+```
+
+## Output
+
+The updated code you provided for `LogEntryDetailCell.swift` looks good and handles the requirements as specified. To complete the update, let's ensure all parts are working correctly with your current setup.
+
+Here is your updated `LogEntryDetailCell.swift` with a minor tweak to the separator logic to handle the case where `parameters` and `sharpener.parameters` arrays have different lengths:
+
+### **LogEntryDetailCell.swift**
+
+```swift
+import UIKit
+
+class LogEntryDetailCell: UITableViewCell {
+    func configure(with logEntry: LogEntry) {
+        guard let sharpener = DataStorage.shared.loadSharpeners().first(where: { $0.type == logEntry.sharpener }) else {
+            textLabel?.text = "\(logEntry.date) - Sharpener: \(logEntry.sharpener) " + logEntry.parameters.joined(separator: ", ")
+            return
+        }
+        
+        var displayText = "\(logEntry.date) - Sharpener: \(logEntry.sharpener)\n"
+        for (index, parameter) in logEntry.parameters.enumerated() {
+            let isLastParameter = index == sharpener.parameters.count - 1
+            let separator = isLastParameter ? "" : ", "
+            if index < sharpener.parameters.count {
+                displayText += "\(sharpener.parameters[index]): \(parameter)\(separator)"
+            } else {
+                displayText += "\(parameter)\(separator)"
+            }
+        }
+
+        textLabel?.numberOfLines = 0 // Allow multiline
+        textLabel?.text = displayText.trimmingCharacters(in: .whitespacesAndNewlines)
+        setupConstraints()
+    }
+
+    private func setupConstraints() {
+        textLabel?.translatesAutoresizingMaskIntoConstraints = false
+        if let textLabel = textLabel {
+            NSLayoutConstraint.activate([
+                textLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
+                textLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
+                textLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+                textLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10)
+            ])
+        }
+    }
+}
+```
+
+### **KnifeLogViewController.swift**
+
+Make sure this file is correctly set up to use the `LogEntryDetailCell`:
+
+```swift
+import UIKit
+
+class KnifeLogViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    var knife: Knife?
+    var logEntries: [LogEntry] = []
+
+    let tableView = UITableView()
+    let knifeImageView = UIImageView()
+    let knifeDetailsLabel = UILabel()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "Knife Logs"
+        view.backgroundColor = .white
+
+        if let knife = knife {
+            logEntries = DataStorage.shared.loadLogEntries().filter { $0.knife == knife.name }
+            knifeDetailsLabel.text = "Type: \(knife.type)\nName: \(knife.name)\nPurchased Date: \(knife.date)"
+            knifeImageView.image = knife.loadImage()
+        }
+
+        setupTableView()
+        setupLayout()
+    }
+
+    func setupTableView() {
+        tableView.frame = view.bounds
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(LogEntryDetailCell.self, forCellReuseIdentifier: "LogEntryDetailCell")
+    }
+
+    func setupLayout() {
+        knifeImageView.translatesAutoresizingMaskIntoConstraints = false
+        knifeDetailsLabel.translatesAutoresizingMaskIntoConstraints = false
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+
+        knifeImageView.contentMode = .scaleAspectFit
+        knifeDetailsLabel.numberOfLines = 0
+
+        view.addSubview(knifeImageView)
+        view.addSubview(knifeDetailsLabel)
+        view.addSubview(tableView)
+
+        NSLayoutConstraint.activate([
+            knifeImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            knifeImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            knifeImageView.heightAnchor.constraint(equalToConstant: 200),
+            knifeImageView.widthAnchor.constraint(equalToConstant: 200),
+
+            knifeDetailsLabel.topAnchor.constraint(equalTo: knifeImageView.bottomAnchor, constant: 10),
+            knifeDetailsLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            knifeDetailsLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            tableView.topAnchor.constraint(equalTo: knifeDetailsLabel.bottomAnchor, constant: 10),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return logEntries.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "LogEntryDetailCell", for: indexPath) as! LogEntryDetailCell
+        let logEntry = logEntries[indexPath.row]
+        cell.configure(with: logEntry)
+        return cell
+    }
+}
+```
+
+These updates ensure that each `LogEntryDetailCell` correctly displays the sharpener parameters and their corresponding values. If there are mismatches between the number of parameters in the `Sharpener` and the log entry, it handles them gracefully. The cell is also set up to allow for multiline text.

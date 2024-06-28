@@ -9,14 +9,12 @@ class LogEntryDetailCell: UITableViewCell {
         
         var displayText = "\(logEntry.date) - Sharpener: \(logEntry.sharpener)\n"
         for (index, parameter) in logEntry.parameters.enumerated() {
-            var seperator = ", "
-            if (index + 1 == sharpener.parameters.count) {
-                seperator = ""
-            }
+            let isLastParameter = index == sharpener.parameters.count - 1
+            let separator = isLastParameter ? "" : ", "
             if index < sharpener.parameters.count {
-                displayText += "\(sharpener.parameters[index]): \(parameter)" + seperator
+                displayText += "\(sharpener.parameters[index]): \(parameter)\(separator)"
             } else {
-                displayText += "\(parameter)" + seperator
+                displayText += "\(parameter)\(separator)"
             }
         }
 

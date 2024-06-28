@@ -2482,3 +2482,96 @@ extension SharpenersViewController: AddSharpenerViewControllerDelegate {
 3. **SharpenersViewController**: In the `didSaveSharpener` method, append the new sharpener to the `sharpeners` array and call `DataStorage.shared.saveSharpeners(sharpeners)` to save the updated list of sharpeners.
 
 This ensures that the new entries are saved to `UserDefaults` whenever a new knife, log entry, or sharpener is added. This should solve the issue of data not being persisted correctly.
+
+
+## Input 
+```
+I saved a Sharpener and that worked, however, when I attempted to save a Knife after that, it gave the following error:
+CFPrefsPlistSource: Attempting to store >= 4194304 bytes of data in CFPreferences/NSUserDefaults on this platform is invalid. This is a bug in SharpKnife or a library it uses.
+Description of keys being set:
+knivesKey: data value, size: 6143815
+Description of keys already present:
+sharpenersKey: data value, size: 88
+```
+
+## Output
+
+The error indicates that the data being saved to `NSUserDefaults` exceeds the 4MB limit for `UserDefaults`. This typically happens when you try to store large binary data, such as images, directly in `UserDefaults`.
+
+To solve this issue, you should save large data like images to the file system and store only references to these files (such as file paths) in `UserDefaults`.
+
+Here's how to update the code to handle image data for `Knife` objects:
+
+### **Knife.swift**
+Update the `Knife` struct to store the image path instead of the image data:
+
+```swift
+import Foundation
+import UIKit
+
+struct Knife: Codable {
+    var date: String
+    var type: String
+    var name: String
+    var imagePath: String?
+
+    init(date: String, type: String, name: String, image: UIImage?) {
+        self.date = date
+        self.type = type
+        self.name = name
+        if let image = image {
+            self.imagePath = saveImageToFileSystem(image)
+        }
+    }
+
+    // Save image to the file system and return the file path
+    private func saveImageToFileSystem(_ image: UIImage) -> String? {
+        guard let data = image.jpegData(compressionQuality: 1.0) else { return nil }
+        let filename = UUID().uuidString + ".jpg"
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(filename)
+        do {
+            try data.write(to: url)
+            return filename
+        } catch {
+            print("Failed to save image to file system: \(error)")
+            return nil
+        }
+    }
+
+    // Load image from the file system
+    func loadImage() -> UIImage? {
+        guard let imagePath = imagePath else { return nil }
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(imagePath)
+        return UIImage(contentsOfFile: url.path)
+    }
+}
+```
+
+### **KnifeCell.swift**
+Update the `KnifeCell` to load the image from the file system:
+
+```swift
+import UIKit
+
+class KnifeCell: UITableViewCell {
+    func configure(with knife: Knife) {
+        textLabel?.text = "\(knife.date) - Type: \(knife.type) - Name: \(knife.name)"
+        imageView?.image = knife.loadImage()
+    }
+}
+```
+
+### **AddKnifeViewController.swift**
+No changes needed here, as the `Knife` struct now handles saving and loading images from the file system.
+
+### **DataStorage.swift**
+No changes needed here, as the `Knife` struct handles encoding and decoding of image paths.
+
+### **KnivesViewController.swift**
+No changes needed here, as the `didSaveKnife` method already calls `DataStorage.shared.saveKnives(knives)` to save the updated list of knives.
+
+### Summary
+1. **Knife.swift**: Update the `Knife` struct to save images to the file system and store the file paths in `UserDefaults`.
+2. **KnifeCell.swift**: Update the `KnifeCell` to load images from the file system.
+
+These changes should resolve the issue by reducing the size of the data being stored in `UserDefaults`. Now, only small pieces of metadata (such as file paths) are stored in `UserDefaults`, while large binary data (such as images) are stored in the file system.
